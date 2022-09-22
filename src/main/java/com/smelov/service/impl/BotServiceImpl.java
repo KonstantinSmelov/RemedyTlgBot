@@ -31,15 +31,19 @@ public class BotServiceImpl implements com.smelov.service.BotService {
     @Override
     @SneakyThrows
     public SendMessage onUpdateReceived(Update update) {
+        log.info("----> вход в onUpdateReceived() <----");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
 
         if (userStatusService.getCurrentStatus(userId) != null) {
             if(userStatusService.getCurrentStatus(userId).equals(Status.DEL)) {
-                log.info("Отрабатываем статус DEL");
+                log.debug("Получили статус {}", userStatusService.getCurrentStatus(userId));
+                log.info("<---- выход из onUpdateReceived() ---->");
                 return medicineService.deleteMedByNumber(update);
             } else
             {
+                log.debug("Получили статус {}", userStatusService.getCurrentStatus(userId));
+                log.info("<---- выход из onUpdateReceived() ---->");
                 return medicineService.addMedicine(update);
             }
         }
@@ -58,17 +62,17 @@ public class BotServiceImpl implements com.smelov.service.BotService {
 
                 case "/add":
                     message.setText("Введите имя лекарства");
-                    log.info("Введите имя лекарства");
                     userStatusService.setCurrentStatus(userId, Status.NAME.setMedicine(new Medicine()));
-                    log.info("Блок case '/add'.  Добавили в Map {}", userStatusService.getCurrentStatus(userId));
+                    log.info("Блок case '/add'. Добавили в Map: key:{}  value:{}", userId, userStatusService.getCurrentStatus(userId));
+                    log.debug("Блок case '/add'. Map содержит:\n{}", userStatusService.getStatusMap());
                     break;
 
                 case "/del":
                     message.setText("Введите порядковый номер лекарства для удаления");
                     userStatusService.setCurrentStatus(userId, Status.DEL.setMedicine(new Medicine()));
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
-                    log.info("Блок case '/del'.  Добавили в Map {} - {}", userId, Status.DEL);
-                    log.info("{}", userStatusService.getStatusMap());
+                    log.info("Блок case '/del'. Добавили в Map: key:{}  value:{}", userId, userStatusService.getCurrentStatus(userId));
+                    log.debug("Блок case '/add'. Map содержит:\n{}", userStatusService.getStatusMap());
                     break;
 
                 case "/start":
@@ -96,9 +100,7 @@ public class BotServiceImpl implements com.smelov.service.BotService {
             }
         }
 
-        log.info("перед return message");
+        log.info("<---- выход из onUpdateReceived() ---->");
         return message;
     }
-
-
 }

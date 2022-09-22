@@ -18,6 +18,6 @@ public enum Status {
 
     @Override
     public String toString() {
-        return super.toString() + " ("  + medicine.getName() + ")";
+        return super.toString() + " (привязан к "  + medicine.getName() + ")";
     }
 }

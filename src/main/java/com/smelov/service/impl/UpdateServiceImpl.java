@@ -10,39 +10,46 @@ public class UpdateServiceImpl implements com.smelov.service.UpdateService {
 
     @Override
     public Long getUserId(Update update) {
+        log.info("----> вход в getUserId() <----");
         Long userId = null;
 
         if (update.hasMessage()) {
             userId = update.getMessage().getFrom().getId();
-            log.info("getUserId(): update.getMessage().getFrom().getId(): {}", userId);
+            log.debug("getUserId(): userId из Message: {}", userId);
         } else if (update.hasCallbackQuery()) {
             userId = update.getCallbackQuery().getFrom().getId();
-            log.info("getUserId(): update.getCallbackQuery().getFrom().getId(): {}", userId);
+            log.debug("getUserId(): userId из CallbackQuery: {}", userId);
         }
+        log.info("<---- выход из getUserId() ---->");
         return userId;
     }
 
     @Override
     public String getTextFromMessage(Update update) {
+        log.info("----> вход в getTextFromMessage() <----");
+
         String msg = null;
 
         if (update.hasMessage()) {
             msg = update.getMessage().getText();
         }
+        log.info("<---- выход из getTextFromMessage() ---->");
         return msg;
     }
 
     @Override
     public Long getChatId(Update update) {
+        log.info("----> вход в getChatId() <----");
         Long chatId = null;
 
         if (update.hasMessage()) {
             chatId = update.getMessage().getChatId();
-            log.info("getChatId(): update.getMessage().getChatId(): {}", chatId);
+            log.debug("getChatId(): chatId из Message: {}", chatId);
         } else if (update.hasCallbackQuery()) {
             chatId = update.getCallbackQuery().getMessage().getChatId();
-            log.info("getChatId(): update.getCallbackQuery().getMessage().getChatId(): {}", chatId);
+            log.debug("getChatId(): chatId из CallbackQuery: {}", chatId);
         }
+        log.info("<---- выход из getChatId() ---->");
         return chatId;
     }
 

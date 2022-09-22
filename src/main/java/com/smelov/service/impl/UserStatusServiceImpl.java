@@ -20,22 +20,18 @@ public class UserStatusServiceImpl implements com.smelov.service.UserStatusServi
 
     @Override
     public Status getCurrentStatus(Long userId) {
+        log.info("----> вход в getCurrentStatus() <----");
         Status status = userStatusMap.get(userId);
-        if (status != null) {
-            log.info("Получили статус {} для userId {}", status, userId);
-        } else {
-            log.info("Получили статус {} для userId {}", status, userId);
-        }
+//        log.debug("Получили статус {} для userId {}", status, userId);
+        log.info("<---- выход из getCurrentStatus() ---->");
         return status;
     }
 
     @Override
     public void setCurrentStatus(Long userId, Status status) {
+        log.info("----> вход в setCurrentStatus() <----");
         userStatusMap.put(userId, status);
-        if (status != null) {
-            log.info("Установили статус {} для userId {}", status, userId);
-        } else {
-            log.info("Установили статус {} для userId {}", status, userId);
-        }
+//        log.debug("Установили статус {} для userId {}", status, userId);
+        log.info("<---- выход из setCurrentStatus() ---->");
     }
 }

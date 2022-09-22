@@ -14,6 +14,7 @@ public class DateServiceImpl implements DateService {
     @Override
     public Optional<Date> StrToDate(String inputDate) {
 
+        log.info("----> вход в StrToDate() <----");
         log.info("StrToDate(): получена строка: {}", inputDate);
         Optional<Date> output = Optional.empty();
 
@@ -57,6 +58,7 @@ public class DateServiceImpl implements DateService {
             log.info("StrToDate(): преобразовано в Date: {}", output.get());
         }
 
+        log.info("<---- выход из StrToDate() ---->");
         return output;
     }
 }

@@ -16,7 +16,7 @@ spring:
 
 logging:
   level:
-    com: info
+    com: debug
 
 bot:
   name:
