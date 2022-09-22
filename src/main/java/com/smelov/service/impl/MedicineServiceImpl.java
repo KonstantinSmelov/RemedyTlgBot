@@ -2,9 +2,11 @@ package com.smelov.service.impl;
 
 import com.smelov.bot.CustomInlineKeyboardMarkup;
 import com.smelov.dao.MedicineRepository;
-import com.smelov.bot.entity.Medicine;
+import com.smelov.entity.Medicine;
 import com.smelov.model.Status;
+import com.smelov.service.DateService;
 import com.smelov.service.MedicineService;
+import com.smelov.service.UpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,8 +28,8 @@ public class MedicineServiceImpl implements MedicineService {
     private final MedicineRepository medicineRepository;
     private final UserStatusServiceImpl userStatusService;
     private final CustomInlineKeyboardMarkup customInlineKeyboardMarkup;
-    private final UpdateServiceImpl updateService;
-    private final DateServiceImpl dateService;
+    private final UpdateService updateService;
+    private final DateService dateService;
 
     @Override
     public List<Medicine> getAllMeds() {

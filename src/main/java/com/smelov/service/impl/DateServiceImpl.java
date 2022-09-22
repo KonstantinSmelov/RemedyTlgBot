@@ -1,5 +1,6 @@
 package com.smelov.service.impl;
 
+import com.smelov.service.DateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -8,7 +9,7 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class DateServiceImpl implements com.smelov.service.DateServiceImpl {
+public class DateServiceImpl implements DateService {
 
     @Override
     public Optional<Date> StrToDate(String inputDate) {

@@ -14,7 +14,7 @@ public class UserStatusServiceImpl implements com.smelov.service.UserStatusServi
     private final Map<Long, Status> userStatusMap = new HashMap<>();
 
     @Override
-    public Map<Long, Status> getUserStatusMap() {
+    public Map<Long, Status> getStatusMap() {
         return userStatusMap;
     }
 

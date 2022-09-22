@@ -1,6 +1,6 @@
-package com.smelov.bot.entity;
+package com.smelov.entity;
 
-import com.smelov.bot.entity.idclass.MedicineId;
+import com.smelov.entity.idclass.MedicineId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

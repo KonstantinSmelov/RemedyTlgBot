@@ -1,6 +1,6 @@
 package com.smelov.service.impl;
 
-import com.smelov.bot.entity.Medicine;
+import com.smelov.entity.Medicine;
 import com.smelov.service.TextMessageService;
 import org.springframework.stereotype.Service;
 

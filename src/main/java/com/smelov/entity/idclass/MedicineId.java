@@ -1,4 +1,4 @@
-package com.smelov.bot.entity.idclass;
+package com.smelov.entity.idclass;
 
 import lombok.*;
 

@@ -1,6 +1,6 @@
 package com.smelov.service;
 
-import com.smelov.bot.entity.Medicine;
+import com.smelov.entity.Medicine;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 

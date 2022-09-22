@@ -2,9 +2,12 @@ package com.smelov.service.impl;
 
 import com.smelov.bot.CustomInlineKeyboardMarkup;
 import com.smelov.bot.CustomReplyKeyboardMarkup;
-import com.smelov.bot.entity.Medicine;
+import com.smelov.entity.Medicine;
 import com.smelov.model.Status;
 import com.smelov.service.MedicineService;
+import com.smelov.service.TextMessageService;
+import com.smelov.service.UpdateService;
+import com.smelov.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -19,11 +22,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 public class BotServiceImpl implements com.smelov.service.BotService {
 
     private final MedicineService medicineService;
-    private final UserStatusServiceImpl userStatusService;
+    private final UserStatusService userStatusService;
     private final CustomInlineKeyboardMarkup customInlineKeyboardMarkup;
     private final CustomReplyKeyboardMarkup customReplyKeyboardMarkup;
-    private final UpdateServiceImpl updateService;
-    private final TextMessageServiceImpl textMessageService;
+    private final UpdateService updateService;
+    private final TextMessageService textMessageService;
 
     @Override
     @SneakyThrows
@@ -65,7 +68,7 @@ public class BotServiceImpl implements com.smelov.service.BotService {
                     userStatusService.setCurrentStatus(userId, Status.DEL.setMedicine(new Medicine()));
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                     log.info("Блок case '/del'.  Добавили в Map {} - {}", userId, Status.DEL);
-                    log.info("{}", userStatusService.getUserStatusMap());
+                    log.info("{}", userStatusService.getStatusMap());
                     break;
 
                 case "/start":

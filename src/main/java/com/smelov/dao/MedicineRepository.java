@@ -1,7 +1,7 @@
 package com.smelov.dao;
 
-import com.smelov.bot.entity.Medicine;
-import com.smelov.bot.entity.idclass.MedicineId;
+import com.smelov.entity.Medicine;
+import com.smelov.entity.idclass.MedicineId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.sql.Date;
