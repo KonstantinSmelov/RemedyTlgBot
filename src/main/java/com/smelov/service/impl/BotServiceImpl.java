@@ -35,17 +35,49 @@ public class BotServiceImpl implements com.smelov.service.BotService {
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
 
-        if (userStatusService.getCurrentStatus(userId) != null) {
-            if(userStatusService.getCurrentStatus(userId).equals(Status.DEL)) {
+        switch (userStatusService.getCurrentStatus(userId)) {
+            case DEL:
                 log.debug("Получили статус {}", userStatusService.getCurrentStatus(userId));
                 log.info("<---- выход из onUpdateReceived() ---->");
                 return medicineService.deleteMedByNumber(update);
-            } else
+            case EDIT:
+                log.debug("Получили статус {}", userStatusService.getCurrentStatus(userId));
+                log.info("<---- выход из onUpdateReceived() ---->");
+                return medicineService.editMedByNumber(update);
+            default:
+                break;
+        }
+
+        if (userStatusService.getCurrentStatus(userId) != Status.NONE) {
+//            if(userStatusService.getCurrentStatus(userId).equals(Status.DEL)) {
+//                log.debug("Получили статус {}", userStatusService.getCurrentStatus(userId));
+//                log.info("<---- выход из onUpdateReceived() ---->");
+//                return medicineService.deleteMedByNumber(update);
+//            }
+//            else
             {
                 log.debug("Получили статус {}", userStatusService.getCurrentStatus(userId));
                 log.info("<---- выход из onUpdateReceived() ---->");
                 return medicineService.addMedicine(update);
             }
+        }
+
+        if (update.hasCallbackQuery()) {
+            message.setChatId(updateService.getChatId(update));
+            switch (update.getCallbackQuery().getData()) {
+                case "DEL_BUTTON":
+                    log.info("DEL_BUTTON");
+                    message.setText("Введите порядковый номер лекарства для удаления");
+                    userStatusService.setCurrentStatus(userId, Status.DEL.setMedicine(new Medicine()));
+                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
+                    break;
+                case "EDIT_BUTTON":
+                    message.setText("Введите порядковый номер лекарства для редактирования");
+                    userStatusService.setCurrentStatus(userId, Status.EDIT.setMedicine(new Medicine()));
+                    log.info("EDIT_BUTTON");
+                    break;
+            }
+            return message;
         }
 
         if (update.getMessage().hasText()) {
@@ -54,6 +86,7 @@ public class BotServiceImpl implements com.smelov.service.BotService {
             switch (update.getMessage().getText()) {
                 case "/detailed_list":
                     message.setText(textMessageService.allMedInfoToText(medicineService.getAllMeds()));
+                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                     break;
 
                 case "/only_name_list":

@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface MedicineService {
     List<Medicine> getAllMeds();
-    List<Medicine> getMedsByName(String name);
     void save(Medicine medicine);
     SendMessage addMedicine(Update update);
-    Medicine getMedById (Medicine medicine); //ID состоит из name, dosage и expDate
+    Medicine getMedById (Medicine medicine);
     SendMessage deleteMedByNumber(Update update);
+    SendMessage editMedByNumber(Update update);
 }

@@ -37,11 +37,6 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
-    public List<Medicine> getMedsByName(String name) {
-        return medicineRepository.findMedicineByName(name);
-    }
-
-    @Override
     public Medicine getMedById(Medicine medicine) {
         return medicineRepository.getByNameAndDosageAndExpDate(medicine.getName(), medicine.getDosage(), medicine.getExpDate());
     }
@@ -49,6 +44,18 @@ public class MedicineServiceImpl implements MedicineService {
     @Override
     public void save(Medicine medicine) {
         medicineRepository.save(medicine);
+    }
+
+    @Override
+    public SendMessage editMedByNumber(Update update) {
+        log.info("----> вход в editMedByNumber() <----");
+        SendMessage message = new SendMessage();
+        Long userId = updateService.getUserId(update);
+        String textFromChat = updateService.getTextFromMessage(update);
+        message.setChatId(updateService.getChatId(update));
+        Medicine medicine = new Medicine();
+
+        return message;
     }
 
     @Override

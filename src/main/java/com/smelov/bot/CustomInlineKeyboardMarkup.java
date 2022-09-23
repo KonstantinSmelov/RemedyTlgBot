@@ -13,6 +13,25 @@ public class CustomInlineKeyboardMarkup {
     private InlineKeyboardMarkup inlineKeyboardMarkup;
     private List<List<InlineKeyboardButton>> rowList;
 
+    public InlineKeyboardMarkup inlineKeyboardForAllMedsList() {
+        inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        rowList = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
+        InlineKeyboardButton cancel_Button = new InlineKeyboardButton();
+        InlineKeyboardButton del_Button = new InlineKeyboardButton();
+
+        cancel_Button.setText("ИЗМЕНИТЬ\n позицию");
+        cancel_Button.setCallbackData("EDIT_BUTTON");
+        del_Button.setText("УДАЛИТЬ\nпозицию");
+        del_Button.setCallbackData("DEL_BUTTON");
+
+        buttonsRow1.add(cancel_Button);
+        buttonsRow1.add(del_Button);
+        rowList.add(buttonsRow1);
+        inlineKeyboardMarkup.setKeyboard(rowList);
+
+        return inlineKeyboardMarkup;
+    }
 
     public InlineKeyboardMarkup inlineKeyboardForCancel() {
         inlineKeyboardMarkup = new InlineKeyboardMarkup();

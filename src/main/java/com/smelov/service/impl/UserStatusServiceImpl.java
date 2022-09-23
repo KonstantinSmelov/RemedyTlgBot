@@ -1,5 +1,6 @@
 package com.smelov.service.impl;
 
+import com.smelov.entity.Medicine;
 import com.smelov.model.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,8 +21,12 @@ public class UserStatusServiceImpl implements com.smelov.service.UserStatusServi
 
     @Override
     public Status getCurrentStatus(Long userId) {
+        userStatusMap.put(null, Status.NONE.setMedicine(new Medicine()));
         log.info("----> вход в getCurrentStatus() <----");
         Status status = userStatusMap.get(userId);
+        if(status == null) {
+            status = userStatusMap.get(null);
+        }
 //        log.debug("Получили статус {} для userId {}", status, userId);
         log.info("<---- выход из getCurrentStatus() ---->");
         return status;
