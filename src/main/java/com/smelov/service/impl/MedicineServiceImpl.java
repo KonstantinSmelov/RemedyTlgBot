@@ -106,7 +106,6 @@ public class MedicineServiceImpl implements MedicineService {
         message.setText("Простите, не понял, начните с начала");
 
         switch (userStatusService.getCurrentStatus(userId)) {
-
             case NAME:
                 newMed = new Medicine();
                 newMed.setName(textFromChat);
