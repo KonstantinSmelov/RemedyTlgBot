@@ -28,6 +28,7 @@ public class UserStatusServiceImpl implements com.smelov.service.UserStatusServi
             status = userStatusMap.get(null);
         }
 //        log.debug("Получили статус {} для userId {}", status, userId);
+        log.info("status: {}", status);
         log.info("<---- выход из getCurrentStatus() ---->");
         return status;
     }
@@ -36,7 +37,7 @@ public class UserStatusServiceImpl implements com.smelov.service.UserStatusServi
     public void setCurrentStatus(Long userId, Status status) {
         log.info("----> вход в setCurrentStatus() <----");
         userStatusMap.put(userId, status);
-//        log.debug("Установили статус {} для userId {}", status, userId);
+        log.info("status: {}", status);
         log.info("<---- выход из setCurrentStatus() ---->");
     }
 }

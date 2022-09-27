@@ -13,6 +13,37 @@ public class CustomInlineKeyboardMarkup {
     private InlineKeyboardMarkup inlineKeyboardMarkup;
     private List<List<InlineKeyboardButton>> rowList;
 
+    public InlineKeyboardMarkup inlineKeyboardForEdit() {
+        inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        rowList = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow2 = new ArrayList<>();
+        InlineKeyboardButton name_Button = new InlineKeyboardButton();
+        InlineKeyboardButton dosage_Button = new InlineKeyboardButton();
+        InlineKeyboardButton exp_date_Button = new InlineKeyboardButton();
+        InlineKeyboardButton quantity_Button = new InlineKeyboardButton();
+
+        name_Button.setText("НАЗВАНИЕ");
+        name_Button.setCallbackData("EDIT_NAME_BUTTON");
+        dosage_Button.setText("ДОЗИРОВКА");
+        dosage_Button.setCallbackData("DOSAGE_BUTTON");
+        exp_date_Button.setText("СРОК ГОДНОСТИ");
+        exp_date_Button.setCallbackData("EXP_DATE_BUTTON");
+        quantity_Button.setText("КОЛ-ВО");
+        quantity_Button.setCallbackData("QUANTITY_BUTTON");
+
+        buttonsRow1.add(name_Button);
+        buttonsRow1.add(dosage_Button);
+        buttonsRow2.add(exp_date_Button);
+        buttonsRow2.add(quantity_Button);
+
+        rowList.add(buttonsRow1);
+        rowList.add(buttonsRow2);
+        inlineKeyboardMarkup.setKeyboard(rowList);
+
+        return inlineKeyboardMarkup;
+    }
+
     public InlineKeyboardMarkup inlineKeyboardForAllMedsList() {
         inlineKeyboardMarkup = new InlineKeyboardMarkup();
         rowList = new ArrayList<>();

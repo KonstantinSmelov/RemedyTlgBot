@@ -51,10 +51,36 @@ public class MedicineServiceImpl implements MedicineService {
         log.info("----> вход в editMedByNumber() <----");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
-        String textFromChat = updateService.getTextFromMessage(update);
         message.setChatId(updateService.getChatId(update));
-        Medicine medicine = new Medicine();
+        String textFromChat = updateService.getTextFromMessage(update);
+        Status status = userStatusService.getCurrentStatus(userId);
+        Medicine medicine;
 
+        switch (status) {
+            case EDIT:
+                medicine = getMedByNumber(update);
+                if (medicine != null) {
+                    status.setMedicine(medicine);
+                    message.setText("Выбрано лекарство:\n" + textFromChat + " - " + medicine.getName() +
+                            " - " + medicine.getDosage() + " - " + medicine.getQuantity() +
+                            " - " + medicine.getExpDate() + "\n\nЧто меняем?");
+                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
+                } else {
+                    message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
+                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
+                }
+                break;
+
+            case EDIT_NAME:
+                medicine = status.getMedicine();
+                medicine.setName(textFromChat);
+                save(medicine);
+                userStatusService.setCurrentStatus(userId, Status.NONE.setMedicine(medicine));
+                break;
+        }
+
+
+        log.info("<---- выход из editMedByNumber() ---->");
         return message;
     }
 
@@ -64,7 +90,7 @@ public class MedicineServiceImpl implements MedicineService {
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
         String textFromChat = updateService.getTextFromMessage(update);
-        Medicine medicine = new Medicine();
+        Medicine medicine;
 
         message.setChatId(updateService.getChatId(update));
 
@@ -76,20 +102,19 @@ public class MedicineServiceImpl implements MedicineService {
             return message;
         }
 
-        for (int x = 1; x <= getAllMeds().size(); x++) {
-            log.info("X = {}, textFromChat = {}", x, textFromChat);
-            if (String.valueOf(x).equals(textFromChat)) {
-                medicine = getAllMeds().get(x-1);
-                log.debug("deleteMedByNumber(): Нашли лекарство {}", medicine);
-                medicineRepository.deleteByNameAndDosageAndExpDate(medicine.getName(), medicine.getDosage(), medicine.getExpDate());
-                message.setText("Вы удалили лекарство:\n"+ x + " - " +  medicine.getName() + " - " + medicine.getDosage() + " - " + medicine.getQuantity() + " - " + medicine.getExpDate());
-                userStatusService.setCurrentStatus(userId, null);
-                message.setReplyMarkup(new ReplyKeyboardRemove(true));
-                break;
-            }
+        medicine = getMedByNumber(update);
+
+        if (medicine != null) {
+            log.debug("deleteMedByNumber(): Нашли лекарство {}", medicine);
+            medicineRepository.deleteByNameAndDosageAndExpDate(medicine.getName(), medicine.getDosage(), medicine.getExpDate());
+            message.setText("Вы удалили лекарство:\n" + textFromChat + " - " + medicine.getName() + " - " + medicine.getDosage() + " - " + medicine.getQuantity() + " - " + medicine.getExpDate());
+            userStatusService.setCurrentStatus(userId, null);
+            message.setReplyMarkup(new ReplyKeyboardRemove(true));
+        } else {
             message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
             message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
         }
+
         log.info("<---- выход из deleteMedByNumber() ---->");
         return message;
     }
@@ -100,33 +125,34 @@ public class MedicineServiceImpl implements MedicineService {
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
         String textFromChat = updateService.getTextFromMessage(update);
+        Status status = userStatusService.getCurrentStatus(userId);
         Medicine newMed;
 
         message.setChatId(updateService.getChatId(update));
         message.setText("Простите, не понял, начните с начала");
 
-        switch (userStatusService.getCurrentStatus(userId)) {
+        switch (status) {
             case NAME:
                 newMed = new Medicine();
                 newMed.setName(textFromChat);
                 message.setText("Введите дозировку лекарства");
                 userStatusService.setCurrentStatus(userId, Status.DOSAGE.setMedicine(newMed));
-                log.info("Блок case NAME:. Добавили в Map: key:{}  value:{}", userId, userStatusService.getCurrentStatus(userId));
+                log.info("Блок case NAME:. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case NAME. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
 
             case DOSAGE:
-                newMed = userStatusService.getCurrentStatus(userId).getMedicine();
+                newMed = status.getMedicine();
                 newMed.setDosage(textFromChat);
                 message.setText("В чём измерять дозировку лекарства?");
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDosage());
                 userStatusService.setCurrentStatus(userId, Status.DOSAGE_TYPE.setMedicine(newMed));
-                log.info("Блок case DOSAGE. Добавили в Map: key:{}  value:{}", userId, userStatusService.getCurrentStatus(userId));
+                log.info("Блок case DOSAGE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case DOSAGE. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
 
             case DOSAGE_TYPE:
-                newMed = userStatusService.getCurrentStatus(userId).getMedicine();
+                newMed = status.getMedicine();
                 if (update.hasCallbackQuery()) {
                     switch (update.getCallbackQuery().getData()) {
                         case "MG_BUTTON":
@@ -143,22 +169,22 @@ public class MedicineServiceImpl implements MedicineService {
                 }
                 message.setText("Введите количество лекарства");
                 userStatusService.setCurrentStatus(userId, Status.QUANTITY.setMedicine(newMed));
-                log.info("Блок case DOSAGE_TYPE. Добавили в Map: key:{}  value:{}", userId, userStatusService.getCurrentStatus(userId));
+                log.info("Блок case DOSAGE_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case DOSAGE_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
 
             case QUANTITY:
-                newMed = userStatusService.getCurrentStatus(userId).getMedicine();
+                newMed = status.getMedicine();
                 newMed.setQuantity(textFromChat);
                 message.setText("В чём измерять кол-во лекарства?");
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForQuantity());
                 userStatusService.setCurrentStatus(userId, Status.QUANTITY_TYPE.setMedicine(newMed));
-                log.info("Блок case QUANTITY. Добавили в Map: key:{}  value:{}", userId, userStatusService.getCurrentStatus(userId));
+                log.info("Блок case QUANTITY. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case QUANTITY. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
 
             case QUANTITY_TYPE:
-                newMed = userStatusService.getCurrentStatus(userId).getMedicine();
+                newMed = status.getMedicine();
                 if (update.hasCallbackQuery()) {
                     switch (update.getCallbackQuery().getData()) {
                         case "PILLS_BUTTON":
@@ -175,13 +201,13 @@ public class MedicineServiceImpl implements MedicineService {
                 }
                 message.setText("Введите срок годности. Год и месяц через пробел:");
                 userStatusService.setCurrentStatus(userId, Status.EXP_DATE.setMedicine(newMed));
-                log.info("Блок case QUANTITY_TYPE. Добавили в Map: key:{}  value:{}", userId, userStatusService.getCurrentStatus(userId));
+                log.info("Блок case QUANTITY_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case QUANTITY_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
 
             case EXP_DATE:
                 Optional<Date> optionalDate = dateService.StrToDate(textFromChat);
-                newMed = userStatusService.getCurrentStatus(userId).getMedicine();
+                newMed = status.getMedicine();
 
                 if (optionalDate.isPresent()) {
                     newMed.setExpDate(optionalDate.get());
@@ -196,11 +222,27 @@ public class MedicineServiceImpl implements MedicineService {
 
                 } else {
                     message.setText("Введите ГОД и МЕСЯЦ через пробел");
-                    log.debug("Status при неверном вводе даты {}", userStatusService.getCurrentStatus(userId));
+                    log.debug("Status при неверном вводе даты {}", status);
                 }
                 break;
         }
         log.info("<---- выход из addMedicine() ---->");
         return message;
     }
+
+    private Medicine getMedByNumber(Update update) {
+        String textFromChat = updateService.getTextFromMessage(update);
+        Medicine medicine = new Medicine();
+
+        for (int x = 1; x <= getAllMeds().size(); x++) {
+            log.info("X = {}, textFromChat = {}", x, textFromChat);
+            if (String.valueOf(x).equals(textFromChat)) {
+                medicine = getAllMeds().get(x - 1);
+                log.debug("getMedByNumber(): Нашли лекарство {}", medicine);
+                return medicine;
+            }
+        }
+        return null;
+    }
+
 }

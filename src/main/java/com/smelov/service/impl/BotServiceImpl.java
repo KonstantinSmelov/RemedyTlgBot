@@ -31,52 +31,30 @@ public class BotServiceImpl implements com.smelov.service.BotService {
     @Override
     @SneakyThrows
     public SendMessage onUpdateReceived(Update update) {
-        log.info("----> вход в onUpdateReceived() <----");
+        log.info("=====> вход в onUpdateReceived() <=====");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
         Status status = userStatusService.getCurrentStatus(userId);
 
         if (status != Status.NONE) {
-            message = currentStatusHandler(update, message, userId, status);
+            message = currentStatusHandler(update, status);
+            log.info("<===== выход из onUpdateReceived() =====>\n");
+            return message;
         }
-
-//        switch (userStatusService.getCurrentStatus(userId)) {
-//            case DEL:
-//                log.debug("Получили статус {}", userStatusService.getCurrentStatus(userId));
-//                log.info("<---- выход из onUpdateReceived() ---->");
-//                return medicineService.deleteMedByNumber(update);
-//            case EDIT:
-//                log.debug("Получили статус {}", userStatusService.getCurrentStatus(userId));
-//                log.info("<---- выход из onUpdateReceived() ---->");
-//                return medicineService.editMedByNumber(update);
-//            default:
-//                break;
-//        }
-
-//        if (userStatusService.getCurrentStatus(userId) != Status.NONE) {
-////            if(userStatusService.getCurrentStatus(userId).equals(Status.DEL)) {
-////                log.debug("Получили статус {}", userStatusService.getCurrentStatus(userId));
-////                log.info("<---- выход из onUpdateReceived() ---->");
-////                return medicineService.deleteMedByNumber(update);
-////            }
-////            else
-//            {
-//                log.debug("Получили статус {}", userStatusService.getCurrentStatus(userId));
-//                log.info("<---- выход из onUpdateReceived() ---->");
-//                return medicineService.addMedicine(update);
-//            }
-//        }
 
         if (update.hasCallbackQuery()) {
             message = callbackQueryHandler(update, message, userId);
+            log.info("<===== выход из onUpdateReceived() =====>\n");
+            return message;
         }
 
-        if (update.getMessage().hasText() || status == Status.NONE) {
+        if (update.getMessage().hasText()) {
             message = messageTextHandler(update, message, userId);
+            log.info("<===== выход из onUpdateReceived() =====>\n");
+            return message;
         }
 
-
-        log.info("<---- выход из onUpdateReceived() ---->");
+        log.info("<===== выход из onUpdateReceived() =====>\n");
         return message;
     }
 
@@ -148,16 +126,23 @@ public class BotServiceImpl implements com.smelov.service.BotService {
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                 break;
             case "EDIT_BUTTON":
+                log.info("EDIT_BUTTON");
                 message.setText("Введите порядковый номер лекарства для редактирования");
                 userStatusService.setCurrentStatus(userId, Status.EDIT.setMedicine(new Medicine()));
-                log.info("EDIT_BUTTON");
+                break;
+            case "EDIT_NAME_BUTTON":
+                Status status = userStatusService.getCurrentStatus(userId);
+                Medicine medicine = status.getMedicine();
+                message.setReplyMarkup(new ReplyKeyboardRemove(true));
+                message.setText(String.format("Заменить %s на:", medicine.getName()));
+                userStatusService.setCurrentStatus(userId, Status.EDIT_NAME.setMedicine(medicine));
                 break;
         }
         log.info("<---- выход из callbackQueryHandler() ---->");
         return message;
     }
 
-    private SendMessage currentStatusHandler(Update update, SendMessage message, Long userId, Status currentStatus) {
+    private SendMessage currentStatusHandler(Update update, Status currentStatus) {
         log.info("----> вход в currentStatusHandler() <----");
 
         switch (currentStatus) {
