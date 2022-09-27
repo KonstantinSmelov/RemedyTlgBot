@@ -3,6 +3,7 @@ package com.smelov.service.impl;
 import com.smelov.bot.CustomInlineKeyboardMarkup;
 import com.smelov.bot.CustomReplyKeyboardMarkup;
 import com.smelov.entity.Medicine;
+import com.smelov.model.EditStatus;
 import com.smelov.model.Status;
 import com.smelov.service.MedicineService;
 import com.smelov.service.TextMessageService;
@@ -36,7 +37,7 @@ public class BotServiceImpl implements com.smelov.service.BotService {
         Long userId = updateService.getUserId(update);
         Status status = userStatusService.getCurrentStatus(userId);
 
-        if (status != Status.NONE) {
+        if ((status != Status.NONE) && !update.hasCallbackQuery()) {
             message = currentStatusHandler(update, status);
             log.info("<===== выход из onUpdateReceived() =====>\n");
             return message;
@@ -135,7 +136,7 @@ public class BotServiceImpl implements com.smelov.service.BotService {
                 Medicine medicine = status.getMedicine();
                 message.setReplyMarkup(new ReplyKeyboardRemove(true));
                 message.setText(String.format("Заменить %s на:", medicine.getName()));
-                userStatusService.setCurrentStatus(userId, Status.EDIT_NAME.setMedicine(medicine));
+                userStatusService.setCurrentStatus(userId, Status.EDIT.setMedicine(medicine).setEditStatus(EditStatus.EDIT_NAME));
                 break;
         }
         log.info("<---- выход из callbackQueryHandler() ---->");

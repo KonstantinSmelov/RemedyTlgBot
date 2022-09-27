@@ -5,9 +5,19 @@ import com.smelov.entity.Medicine;
 public enum Status {
     NONE,
     NAME, DOSAGE, DOSAGE_TYPE, QUANTITY, QUANTITY_TYPE, EXP_DATE,
-    DEL, EDIT, EDIT_NAME, EDIT_DOSAGE, EDIT_EXP, EDIT_QTY;
+    DEL, EDIT;
 
     private Medicine medicine;
+    private EditStatus editStatus = EditStatus.NONE;
+
+    public EditStatus getEditStatus() {
+        return editStatus;
+    }
+
+    public Status setEditStatus(EditStatus editStatus) {
+        this.editStatus = editStatus;
+        return this;
+    }
 
     public Medicine getMedicine() {
         return medicine;

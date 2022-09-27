@@ -3,6 +3,7 @@ package com.smelov.service.impl;
 import com.smelov.bot.CustomInlineKeyboardMarkup;
 import com.smelov.dao.MedicineRepository;
 import com.smelov.entity.Medicine;
+import com.smelov.model.EditStatus;
 import com.smelov.model.Status;
 import com.smelov.service.DateService;
 import com.smelov.service.MedicineService;
@@ -58,28 +59,39 @@ public class MedicineServiceImpl implements MedicineService {
 
         switch (status) {
             case EDIT:
+                log.debug("editMedByNumber(), блок case EDIT");
                 medicine = getMedByNumber(update);
-                if (medicine != null) {
+
+                if (medicine != null && status.getEditStatus().equals(EditStatus.NONE)) {
                     status.setMedicine(medicine);
                     message.setText("Выбрано лекарство:\n" + textFromChat + " - " + medicine.getName() +
                             " - " + medicine.getDosage() + " - " + medicine.getQuantity() +
                             " - " + medicine.getExpDate() + "\n\nЧто меняем?");
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
-                } else {
+                } else if (status.getEditStatus().equals(EditStatus.NONE)) {
                     message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                 }
+
+                switch (status.getEditStatus()) {
+                    case EDIT_NAME:
+                        log.debug("editMedByNumber(), блок case EDIT_NAME");
+                        medicine = status.getMedicine();
+                        medicine.setName(textFromChat);
+                        save(medicine);
+                        userStatusService.setCurrentStatus(userId, Status.NONE.setMedicine(medicine).setEditStatus(EditStatus.NONE));
+                        break;
+                }
                 break;
 
-            case EDIT_NAME:
-                medicine = status.getMedicine();
-                medicine.setName(textFromChat);
-                save(medicine);
-                userStatusService.setCurrentStatus(userId, Status.NONE.setMedicine(medicine));
-                break;
+//            case EDIT_NAME:
+//                log.debug("editMedByNumber(), блок case EDIT_NAME");
+//                medicine = status.getMedicine();
+//                medicine.setName(textFromChat);
+//                save(medicine);
+//                userStatusService.setCurrentStatus(userId, Status.NONE.setMedicine(medicine));
+//                break;
         }
-
-
         log.info("<---- выход из editMedByNumber() ---->");
         return message;
     }
