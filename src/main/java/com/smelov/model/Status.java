@@ -3,12 +3,20 @@ package com.smelov.model;
 import com.smelov.entity.Medicine;
 
 public enum Status {
-    NONE,
-    NAME, DOSAGE, DOSAGE_TYPE, QUANTITY, QUANTITY_TYPE, EXP_DATE,
-    DEL, EDIT;
+    NONE, ADD, DEL, EDIT;
 
     private Medicine medicine;
     private EditStatus editStatus = EditStatus.NONE;
+    private AddStatus addStatus = AddStatus.NONE;
+
+    public AddStatus getAddStatus() {
+        return addStatus;
+    }
+
+    public Status setAddStatus(AddStatus addStatus) {
+        this.addStatus = addStatus;
+        return this;
+    }
 
     public EditStatus getEditStatus() {
         return editStatus;
@@ -30,6 +38,7 @@ public enum Status {
 
     @Override
     public String toString() {
-        return super.toString() + " (привязан к "  + medicine.getName() + ")";
+//        return super.toString() + "; AddStatus: " + getAddStatus() + "; EditStatus: " + getEditStatus() + " (привязан к "  + medicine.getName() + ")";
+        return this.name() + "; AddStatus: " + getAddStatus() + "; EditStatus: " + getEditStatus() + " (привязан к "  + medicine.getName() + ")";
     }
 }

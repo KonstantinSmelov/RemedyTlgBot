@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - preConditions:
+      - dbms:
+          type: h2
+  - changeSet:
+      id: create-medicines-table
+      author: KMS
+  - include:
+      file: create-medicines-table.sql
+      relativeToChangelogFile: true

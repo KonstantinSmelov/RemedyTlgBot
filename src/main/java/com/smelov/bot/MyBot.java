@@ -27,11 +27,7 @@ public class MyBot extends TelegramLongPollingBot {
         List<BotCommand> commandList = new ArrayList<>();
         commandList.add(new BotCommand("/detailed_list", "Детализированный список всех лекарств"));
         commandList.add(new BotCommand("/only_name_list", "Список названий всех лекарств"));
-        commandList.add(new BotCommand("/add", "Добавление лекарства в базу"));
-        commandList.add(new BotCommand("/del", "Удаление лекарства из базы"));
-        commandList.add(new BotCommand("/test1", "test1"));
-        commandList.add(new BotCommand("/test2", "test2"));
-        commandList.add(new BotCommand("/test3", "test3"));
+        commandList.add(new BotCommand("/exit", "Выход в главное меню"));
         execute(new SetMyCommands(commandList, new BotCommandScopeDefault(), null));
     }
 

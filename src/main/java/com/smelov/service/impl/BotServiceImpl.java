@@ -1,8 +1,8 @@
 package com.smelov.service.impl;
 
 import com.smelov.bot.CustomInlineKeyboardMarkup;
-import com.smelov.bot.CustomReplyKeyboardMarkup;
 import com.smelov.entity.Medicine;
+import com.smelov.model.AddStatus;
 import com.smelov.model.EditStatus;
 import com.smelov.model.Status;
 import com.smelov.service.MedicineService;
@@ -25,7 +25,7 @@ public class BotServiceImpl implements com.smelov.service.BotService {
     private final MedicineService medicineService;
     private final UserStatusService userStatusService;
     private final CustomInlineKeyboardMarkup customInlineKeyboardMarkup;
-    private final CustomReplyKeyboardMarkup customReplyKeyboardMarkup;
+    //    private final CustomReplyKeyboardMarkup customReplyKeyboardMarkup;
     private final UpdateService updateService;
     private final TextMessageService textMessageService;
 
@@ -34,33 +34,40 @@ public class BotServiceImpl implements com.smelov.service.BotService {
     public SendMessage onUpdateReceived(Update update) {
         log.info("=====> вход в onUpdateReceived() <=====");
         SendMessage message = new SendMessage();
+        message.setChatId(updateService.getChatId(update));
+        message.setText("Простите, не понял в onUpdateReceived");
         Long userId = updateService.getUserId(update);
         Status status = userStatusService.getCurrentStatus(userId);
 
-        if ((status != Status.NONE) && !update.hasCallbackQuery()) {
+        //Обнуление статуса и выход в гл. меню из любого статуса
+        if (update.hasMessage() && update.getMessage().getText().equals("/exit")) {
+            log.info("Возвращаемся в гл. меню, обнуляем статус");
+            userStatusService.resetStatus(userId);
+            message.setReplyMarkup(new ReplyKeyboardRemove(true));
+            message.setText("Вышли в главное меню");
+            log.info("<===== выход из onUpdateReceived() =====>\n");
+            return message;
+        }
+
+        //Первичная отработка текстовых команд верхнего уровня (гл. меню) (Установка Status в ADD/EDIT/DEL)
+        if ((status != Status.NONE)) {
             message = currentStatusHandler(update, status);
             log.info("<===== выход из onUpdateReceived() =====>\n");
             return message;
-        }
-
-        if (update.hasCallbackQuery()) {
-            message = callbackQueryHandler(update, message, userId);
+        } else if (update.hasCallbackQuery()) {
+            message = callbackQueryHandler(update, userId);
+            log.info("<===== выход из onUpdateReceived() =====>\n");
+            return message;
+        } else {
+            message = messageTextHandler(update, userId);
             log.info("<===== выход из onUpdateReceived() =====>\n");
             return message;
         }
-
-        if (update.getMessage().hasText()) {
-            message = messageTextHandler(update, message, userId);
-            log.info("<===== выход из onUpdateReceived() =====>\n");
-            return message;
-        }
-
-        log.info("<===== выход из onUpdateReceived() =====>\n");
-        return message;
     }
 
-    private SendMessage messageTextHandler(Update update, SendMessage message, Long userId) {
+    private SendMessage messageTextHandler(Update update, Long userId) {
         log.info("----> вход в messageTextHandler() <----");
+        SendMessage message = new SendMessage();
 
         message.setChatId(update.getMessage().getChatId());
         switch (update.getMessage().getText()) {
@@ -73,50 +80,21 @@ public class BotServiceImpl implements com.smelov.service.BotService {
                 message.setText(textMessageService.medNameAndDosageToText(medicineService.getAllMeds()));
                 break;
 
-            case "/add":
-                message.setText("Введите имя лекарства");
-                userStatusService.setCurrentStatus(userId, Status.NAME.setMedicine(new Medicine()));
-                log.info("Блок case '/add'. Добавили в Map: key:{}  value:{}", userId, userStatusService.getCurrentStatus(userId));
-                log.debug("Блок case '/add'. Map содержит:\n{}", userStatusService.getStatusMap());
-                break;
-
-            case "/del":
-                message.setText("Введите порядковый номер лекарства для удаления");
-                userStatusService.setCurrentStatus(userId, Status.DEL.setMedicine(new Medicine()));
-                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
-                log.info("Блок case '/del'. Добавили в Map: key:{}  value:{}", userId, userStatusService.getCurrentStatus(userId));
-                log.debug("Блок case '/add'. Map содержит:\n{}", userStatusService.getStatusMap());
-                break;
-
             case "/start":
-                message.setText("Добро пожаловать!\n\nЯ бот, который поможет в учёте ваших лекарств");
-                break;
-
-            case "/test1":
-                message.setText("Переключились на MainMenu");
-                message.setReplyMarkup(customReplyKeyboardMarkup.replyKeyboardMarkupForDateMonth());
-                break;
-
-            case "/test2":
-                message.setText("Переключились на Edit");
-                message.setReplyMarkup(customReplyKeyboardMarkup.replyKeyboardMarkupForDateYears());
-                break;
-
-            case "/test3":
-                message.setText("Удалили клаву");
-                message.setReplyMarkup(new ReplyKeyboardRemove(true));
+                message.setText("Добро пожаловать!\n\nЯ бот, который поможет в учёте лекарств в вашей домашней аптечке");
                 break;
 
             default:
-                message.setText("Простите, не понял");
+                message.setText("Простите, не понял в messageTextHandler");
                 break;
         }
         log.info("<---- выход из messageTextHandler() ---->");
         return message;
     }
 
-    private SendMessage callbackQueryHandler(Update update, SendMessage message, Long userId) {
+    private SendMessage callbackQueryHandler(Update update, Long userId) {
         log.info("----> вход в callbackQueryHandler() <----");
+        SendMessage message = new SendMessage();
 
         message.setChatId(updateService.getChatId(update));
         switch (update.getCallbackQuery().getData()) {
@@ -124,20 +102,26 @@ public class BotServiceImpl implements com.smelov.service.BotService {
                 log.info("DEL_BUTTON");
                 message.setText("Введите порядковый номер лекарства для удаления");
                 userStatusService.setCurrentStatus(userId, Status.DEL.setMedicine(new Medicine()));
-                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
+//                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                 break;
             case "EDIT_BUTTON":
                 log.info("EDIT_BUTTON");
                 message.setText("Введите порядковый номер лекарства для редактирования");
                 userStatusService.setCurrentStatus(userId, Status.EDIT.setMedicine(new Medicine()));
                 break;
-            case "EDIT_NAME_BUTTON":
-                Status status = userStatusService.getCurrentStatus(userId);
-                Medicine medicine = status.getMedicine();
-                message.setReplyMarkup(new ReplyKeyboardRemove(true));
-                message.setText(String.format("Заменить %s на:", medicine.getName()));
-                userStatusService.setCurrentStatus(userId, Status.EDIT.setMedicine(medicine).setEditStatus(EditStatus.EDIT_NAME));
+            case "ADD_BUTTON":
+                log.info("ADD_BUTTON");
+                message.setText("Введите имя лекарства для добавления");
+                userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.NAME).setMedicine(new Medicine()));
                 break;
+//            case "EDIT_NAME_BUTTON":
+//                log.info("ADD_BUTTON");
+//                Status status = userStatusService.getCurrentStatus(userId);
+//                Medicine medicine = status.getMedicine();
+//                message.setReplyMarkup(new ReplyKeyboardRemove(true));
+//                message.setText(String.format("Заменить %s на:", medicine.getName()));
+//                userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_NAME).setMedicine(medicine));
+//                break;
         }
         log.info("<---- выход из callbackQueryHandler() ---->");
         return message;
@@ -157,11 +141,19 @@ public class BotServiceImpl implements com.smelov.service.BotService {
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
                 return medicineService.editMedByNumber(update);
-            default:
+            case ADD:
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
                 return medicineService.addMedicine(update);
+            default:
+                log.debug("Получили статус {}", currentStatus);
+                log.info("<---- выход из currentStatusHandler() ---->");
+                log.info("<---- выход из onUpdateReceived() ---->");
+                SendMessage message = new SendMessage();
+                message.setChatId(updateService.getChatId(update));
+                message.setText("Простите, не понял в currentStatusHandler");
+                return message;
         }
     }
 }

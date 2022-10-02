@@ -2,17 +2,23 @@ spring:
   h2:
     console:
       enabled: true
+
   datasource:
     url: jdbc:h2:file:./src/main/resources/h2db
 #    url: jdbc:h2:mem:mydb
     username: sa
     password: 123
     driverClassName: org.h2.Driver
+
   jpa:
     hibernate:
       ddl-auto: validate
+
   profiles:
     active: pass
+
+  liquibase:
+     enabled: true
 
 logging:
   level:
