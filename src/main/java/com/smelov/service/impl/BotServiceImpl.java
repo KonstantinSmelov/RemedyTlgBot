@@ -114,14 +114,14 @@ public class BotServiceImpl implements com.smelov.service.BotService {
                 message.setText("Введите имя лекарства для добавления");
                 userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.NAME).setMedicine(new Medicine()));
                 break;
-//            case "EDIT_NAME_BUTTON":
-//                log.info("ADD_BUTTON");
-//                Status status = userStatusService.getCurrentStatus(userId);
-//                Medicine medicine = status.getMedicine();
-//                message.setReplyMarkup(new ReplyKeyboardRemove(true));
-//                message.setText(String.format("Заменить %s на:", medicine.getName()));
-//                userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_NAME).setMedicine(medicine));
-//                break;
+            case "EDIT_NAME_BUTTON":
+                log.info("ADD_BUTTON");
+                Status status = userStatusService.getCurrentStatus(userId);
+                Medicine medicine = status.getMedicine();
+                message.setReplyMarkup(new ReplyKeyboardRemove(true));
+                message.setText(String.format("Заменить %s на:", medicine.getName()));
+                userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_NAME).setMedicine(medicine));
+                break;
         }
         log.info("<---- выход из callbackQueryHandler() ---->");
         return message;

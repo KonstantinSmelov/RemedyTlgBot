@@ -69,19 +69,18 @@ public class MedicineServiceImpl implements MedicineService {
                             " - " + medicine.getDosage() + " - " + medicine.getQuantity() +
                             " - " + medicine.getExpDate() + "\n\nЧто меняем?");
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
-                    userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_NAME).setMedicine(medicine));
                     System.out.println(status);
-                } else if (status.getEditStatus().equals(EditStatus.NONE)) {
-                    message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
-//                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                 }
+//                else if (status.getEditStatus().equals(EditStatus.NONE)) {
+//                    message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
+////                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
+//                }
                 break;
 
             case EDIT_NAME:
                 log.debug("editMedByNumber(), блок case EDIT_NAME");
-                if(update.)
                 medicine = status.getMedicine();
-                medicine.setName("asdfasdfa");
+                medicine.setName(textFromChat);
                 save(medicine);
                 userStatusService.resetStatus(userId);
                 message.setText("Название изменено");
