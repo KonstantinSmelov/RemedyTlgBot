@@ -108,7 +108,6 @@ public class MedicineServiceImpl implements MedicineService {
                     log.info("<---- выход из editMedByNumber() ---->");
                     return message;
             }
-
         }
 
         switch (status.getEditStatus()) {
@@ -132,11 +131,10 @@ public class MedicineServiceImpl implements MedicineService {
                 if (edit(medToEdit, medicine)) {
                     userStatusService.resetStatus(userId);
                     message.setText("Название изменено");
-                    break;
                 } else {
                     message.setText("Название НЕ изменено");
-                    break;
                 }
+                break;
 
             case EDIT_DOSAGE:
                 log.debug("editMedByNumber(), блок case EDIT_DOSAGE");
@@ -145,11 +143,10 @@ public class MedicineServiceImpl implements MedicineService {
                 if (edit(medToEdit, medicine)) {
                     userStatusService.resetStatus(userId);
                     message.setText("Дозировка изменена");
-                    break;
                 } else {
                     message.setText("Дозировка НЕ изменена");
-                    break;
                 }
+                break;
 
             case EDIT_QTY:
                 log.debug("editMedByNumber(), блок case EDIT_QTY");
@@ -158,11 +155,10 @@ public class MedicineServiceImpl implements MedicineService {
                 if (edit(medToEdit, medicine)) {
                     userStatusService.resetStatus(userId);
                     message.setText("Кол-во изменено");
-                    break;
                 } else {
                     message.setText("Кол-во НЕ изменено");
-                    break;
                 }
+                break;
 
             case EDIT_EXP:
                 log.debug("editMedByNumber(), блок case EDIT_QTY");
@@ -176,12 +172,10 @@ public class MedicineServiceImpl implements MedicineService {
                     } else {
                         message.setText("Срок годности НЕ изменён");
                     }
-                    break;
                 } else {
                     message.setText("Введите ГОД и МЕСЯЦ через пробел");
                 }
-
-
+                break;
         }
         log.info("<---- выход из editMedByNumber() ---->");
         return message;
@@ -335,7 +329,7 @@ public class MedicineServiceImpl implements MedicineService {
 
     private Medicine getMedByNumber(Update update) {
         String textFromChat = updateService.getTextFromMessage(update);
-        Medicine medicine = new Medicine();
+        Medicine medicine;
 
         for (int x = 1; x <= getAllMeds().size(); x++) {
             log.info("X = {}, textFromChat = {}", x, textFromChat);

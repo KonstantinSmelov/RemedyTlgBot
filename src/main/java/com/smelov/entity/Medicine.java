@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.util.Objects;
 
 @Entity
 @Table(name = "medicines")
@@ -41,7 +42,11 @@ public class Medicine {
     }
 
     public String getTextExpDate() {
-        return this.getExpDate().toString().substring(0, getExpDate().toString().length()-3);
+        return this.getExpDate().toString().substring(0, getExpDate().toString().length() - 3);
     }
 
+//    @Override
+//    public int compareTo(Medicine o) {
+//        return this.getName().compareTo(o.getName());
+//    }
 }

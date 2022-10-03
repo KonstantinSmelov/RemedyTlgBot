@@ -11,8 +11,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 
@@ -71,13 +69,14 @@ public class BotServiceImpl implements BotService {
 
         message.setChatId(update.getMessage().getChatId());
         switch (update.getMessage().getText()) {
-            case "/detailed_list":
-                message.setText(textMessageService.allMedInfoToText(medicineService.getAllMeds()));
+            case "/by_name":
+                message.setText(textMessageService.allInfoListSortedByName(medicineService.getAllMeds()));
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                 break;
 
-            case "/only_name_list":
-                message.setText(textMessageService.medNameAndDosageToText(medicineService.getAllMeds()));
+            case "/by_exp_date":
+                message.setText(textMessageService.allInfoListSortedByExpDate(medicineService.getAllMeds()));
+                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                 break;
 
             case "/start":
