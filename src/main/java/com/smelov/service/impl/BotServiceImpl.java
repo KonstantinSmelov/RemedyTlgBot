@@ -5,10 +5,7 @@ import com.smelov.entity.Medicine;
 import com.smelov.model.AddStatus;
 import com.smelov.model.EditStatus;
 import com.smelov.model.Status;
-import com.smelov.service.MedicineService;
-import com.smelov.service.TextMessageService;
-import com.smelov.service.UpdateService;
-import com.smelov.service.UserStatusService;
+import com.smelov.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class BotServiceImpl implements com.smelov.service.BotService {
+public class BotServiceImpl implements BotService {
 
     private final MedicineService medicineService;
     private final UserStatusService userStatusService;
@@ -38,9 +35,6 @@ public class BotServiceImpl implements com.smelov.service.BotService {
         Status status = userStatusService.getCurrentStatus(userId);
         message.setChatId(updateService.getChatId(update));
         message.setText("Простите, не понял в onUpdateReceived");
-
-        if(update.hasMessage())
-            System.out.println(update.getMessage().getText());
 
         //Обнуление статуса и выход в гл. меню из любого статуса
         if (update.hasMessage() && update.getMessage().getText().equals("/exit")) {

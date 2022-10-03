@@ -1,12 +1,13 @@
 package com.smelov.service.impl;
 
+import com.smelov.service.UpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Service
 @Slf4j
-public class UpdateServiceImpl implements com.smelov.service.UpdateService {
+public class UpdateServiceImpl implements UpdateService {
 
     @Override
     public Long getUserId(Update update) {
