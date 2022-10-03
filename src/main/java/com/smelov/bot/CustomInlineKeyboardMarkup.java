@@ -26,11 +26,11 @@ public class CustomInlineKeyboardMarkup {
         name_Button.setText("НАЗВАНИЕ");
         name_Button.setCallbackData("EDIT_NAME_BUTTON");
         dosage_Button.setText("ДОЗИРОВКА");
-        dosage_Button.setCallbackData("DOSAGE_BUTTON");
+        dosage_Button.setCallbackData("EDIT_DOSAGE_BUTTON");
         exp_date_Button.setText("СРОК ГОДНОСТИ");
-        exp_date_Button.setCallbackData("EXP_DATE_BUTTON");
+        exp_date_Button.setCallbackData("EDIT_EXP_DATE_BUTTON");
         quantity_Button.setText("КОЛ-ВО");
-        quantity_Button.setCallbackData("QUANTITY_BUTTON");
+        quantity_Button.setCallbackData("EDIT_QUANTITY_BUTTON");
 
         buttonsRow1.add(name_Button);
         buttonsRow1.add(dosage_Button);

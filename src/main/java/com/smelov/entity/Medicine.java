@@ -33,4 +33,15 @@ public class Medicine {
     @Column(name = "quantity")
     private String quantity;
 
+    public Medicine(Medicine medicine) {
+        this.setName(medicine.getName());
+        this.setDosage(medicine.getDosage());
+        this.setExpDate(medicine.getExpDate());
+        this.setQuantity(medicine.getQuantity());
+    }
+
+    public String getTextExpDate() {
+        return this.getExpDate().toString().substring(0, getExpDate().toString().length()-3);
+    }
+
 }

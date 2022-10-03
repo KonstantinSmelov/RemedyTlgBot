@@ -9,6 +9,7 @@ import java.util.List;
 public interface MedicineService {
     List<Medicine> getAllMeds();
     void save(Medicine medicine);
+    boolean edit(Medicine medToEdit, Medicine storedMed);
     SendMessage addMedicine(Update update);
     Medicine getMedById (Medicine medicine);
     SendMessage deleteMedByNumber(Update update);

@@ -54,7 +54,7 @@ public class TextMessageServiceImpl implements TextMessageService {
                     .append(" - ")
                     .append(med.getQuantity())
                     .append(" - ")
-                    .append(med.getExpDate())
+                    .append(med.getTextExpDate())
                     .append("\n");
         }
 

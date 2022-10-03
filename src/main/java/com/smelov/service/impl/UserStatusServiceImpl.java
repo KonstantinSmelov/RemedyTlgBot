@@ -48,10 +48,10 @@ public class UserStatusServiceImpl implements UserStatusService {
     public void resetStatus(Long userId) {
         log.info("----> вход в resetStatus() <----");
         Status status = userStatusMap.get(userId);
-        log.info("status на входе: {}", status);
+        log.info("status на входе для userId {}: {}", userId, status);
         status = Status.NONE.setEditStatus(EditStatus.NONE).setAddStatus(AddStatus.NONE).setMedicine(new Medicine());
         userStatusMap.put(userId, status);
-        log.info("status на выходе: {}", status);
+        log.info("status на выходе для userId {}: {}", userId, status);
         log.info("<---- выход из resetStatus() ---->");
     }
 }

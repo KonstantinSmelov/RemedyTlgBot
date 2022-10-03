@@ -49,6 +49,21 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
+    public boolean edit(Medicine medToEdit, Medicine storedMed) {
+        log.info("----> вход в edit() <----");
+        Medicine tempMedicine = medicineRepository.getByNameAndDosageAndExpDate(storedMed.getName(), storedMed.getDosage(), storedMed.getExpDate());
+        if (tempMedicine != null) {
+            medicineRepository.deleteByNameAndDosageAndExpDate(storedMed.getName(), storedMed.getDosage(), storedMed.getExpDate());
+            medicineRepository.save(medToEdit);
+            log.info("<---- выход из edit() ---->");
+            return true;
+        } else {
+            log.info("<---- выход из edit() ---->");
+            return false;
+        }
+    }
+
+    @Override
     public SendMessage editMedByNumber(Update update) {
         log.info("----> вход в editMedByNumber() <----");
         SendMessage message = new SendMessage();
@@ -56,13 +71,50 @@ public class MedicineServiceImpl implements MedicineService {
         message.setChatId(updateService.getChatId(update));
         String textFromChat = updateService.getTextFromMessage(update);
         Status status = userStatusService.getCurrentStatus(userId);
-        Medicine medicine;
+        Medicine medicine = status.getMedicine();
+        Medicine medToEdit;
+
+        if (update.hasCallbackQuery()) {
+            switch (update.getCallbackQuery().getData()) {
+                case "EDIT_NAME_BUTTON":
+                    log.info("EDIT_NAME_BUTTON");
+                    message.setReplyMarkup(new ReplyKeyboardRemove(true));
+                    message.setText(String.format("Заменить %s на:", medicine.getName()));
+                    userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_NAME).setMedicine(medicine));
+                    log.info("<---- выход из editMedByNumber() ---->");
+                    return message;
+
+                case "EDIT_DOSAGE_BUTTON":
+                    log.info("EDIT_DOSAGE_BUTTON");
+                    message.setReplyMarkup(new ReplyKeyboardRemove(true));
+                    message.setText(String.format("Заменить %s на:", extractDataWithoutUnits(medicine.getDosage())));
+                    userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_DOSAGE).setMedicine(medicine));
+                    log.info("<---- выход из editMedByNumber() ---->");
+                    return message;
+
+                case "EDIT_QUANTITY_BUTTON":
+                    log.info("EDIT_QUANTITY_BUTTON");
+                    message.setReplyMarkup(new ReplyKeyboardRemove(true));
+                    message.setText(String.format("Заменить %s на:", extractDataWithoutUnits(medicine.getQuantity())));
+                    userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_QTY).setMedicine(medicine));
+                    log.info("<---- выход из editMedByNumber() ---->");
+                    return message;
+
+                case "EDIT_EXP_DATE_BUTTON":
+                    log.info("EDIT_EXP_DATE_BUTTON");
+                    message.setReplyMarkup(new ReplyKeyboardRemove(true));
+                    message.setText(String.format("Заменить %s на (введите год и месяц через пробел):", medicine.getTextExpDate()));
+                    userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_EXP).setMedicine(medicine));
+                    log.info("<---- выход из editMedByNumber() ---->");
+                    return message;
+            }
+
+        }
 
         switch (status.getEditStatus()) {
             case NONE:
                 log.debug("editMedByNumber(), блок case NONE");
                 medicine = getMedByNumber(update);
-
                 if (medicine != null) {
                     status.setMedicine(medicine);
                     message.setText("Выбрано лекарство:\n" + textFromChat + " - " + medicine.getName() +
@@ -71,20 +123,65 @@ public class MedicineServiceImpl implements MedicineService {
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
                     System.out.println(status);
                 }
-//                else if (status.getEditStatus().equals(EditStatus.NONE)) {
-//                    message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
-////                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
-//                }
                 break;
 
             case EDIT_NAME:
                 log.debug("editMedByNumber(), блок case EDIT_NAME");
-                medicine = status.getMedicine();
-                medicine.setName(textFromChat);
-                save(medicine);
-                userStatusService.resetStatus(userId);
-                message.setText("Название изменено");
-                break;
+                medToEdit = new Medicine(medicine);
+                medToEdit.setName(textFromChat);
+                if (edit(medToEdit, medicine)) {
+                    userStatusService.resetStatus(userId);
+                    message.setText("Название изменено");
+                    break;
+                } else {
+                    message.setText("Название НЕ изменено");
+                    break;
+                }
+
+            case EDIT_DOSAGE:
+                log.debug("editMedByNumber(), блок case EDIT_DOSAGE");
+                medToEdit = new Medicine(medicine);
+                medToEdit.setDosage(textFromChat + medicine.getDosage().substring(medicine.getDosage().length() - 4));
+                if (edit(medToEdit, medicine)) {
+                    userStatusService.resetStatus(userId);
+                    message.setText("Дозировка изменена");
+                    break;
+                } else {
+                    message.setText("Дозировка НЕ изменена");
+                    break;
+                }
+
+            case EDIT_QTY:
+                log.debug("editMedByNumber(), блок case EDIT_QTY");
+                medToEdit = new Medicine(medicine);
+                medToEdit.setQuantity(textFromChat + " " + extractUnitsWithoutData(medicine.getQuantity()));
+                if (edit(medToEdit, medicine)) {
+                    userStatusService.resetStatus(userId);
+                    message.setText("Кол-во изменено");
+                    break;
+                } else {
+                    message.setText("Кол-во НЕ изменено");
+                    break;
+                }
+
+            case EDIT_EXP:
+                log.debug("editMedByNumber(), блок case EDIT_QTY");
+                medToEdit = new Medicine(medicine);
+                Optional<Date> optionalDate = dateService.StrToDate(textFromChat);
+                if (optionalDate.isPresent()) {
+                    medToEdit.setExpDate(optionalDate.get());
+                    if (edit(medToEdit, medicine)) {
+                        userStatusService.resetStatus(userId);
+                        message.setText("Срок годности изменён");
+                    } else {
+                        message.setText("Срок годности НЕ изменён");
+                    }
+                    break;
+                } else {
+                    message.setText("Введите ГОД и МЕСЯЦ через пробел");
+                }
+
+
         }
         log.info("<---- выход из editMedByNumber() ---->");
         return message;
@@ -224,7 +321,6 @@ public class MedicineServiceImpl implements MedicineService {
                     } else {
                         message.setText(String.format("%s\n%s\n%s\n\nУже есть в базе!\nЕсли вы ходите изменить кол-во имеющегося лекарства, то выберите пункт меню редактировать", newMed.getName(), newMed.getDosage(), newMed.getExpDate().toString()));
                     }
-//                    userStatusService.setCurrentStatus(userId, null);
                     userStatusService.resetStatus(userId);
 
                 } else {
@@ -252,4 +348,21 @@ public class MedicineServiceImpl implements MedicineService {
         return null;
     }
 
+    private String extractDataWithoutUnits(String withUnits) {
+        StringBuilder dosage = new StringBuilder();
+
+        for (int x = 0; withUnits.charAt(x) != ' '; x++) {
+            dosage.append(withUnits.charAt(x));
+        }
+        return dosage.toString();
+    }
+
+    private String extractUnitsWithoutData(String withData) {
+        StringBuilder dosage = new StringBuilder();
+
+        for (int x = withData.length() - 1; withData.charAt(x) != ' '; x--) {
+            dosage.append(withData.charAt(x));
+        }
+        return dosage.reverse().toString();
+    }
 }
