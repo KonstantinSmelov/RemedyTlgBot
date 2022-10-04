@@ -1,6 +1,6 @@
 package com.smelov.bot;
 
-import com.smelov.service.impl.BotServiceImpl;
+import com.smelov.service.BotService;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -15,12 +15,12 @@ import java.util.List;
 @Component
 public class MyBot extends TelegramLongPollingBot {
 
-    private final BotServiceImpl botServiceImpl;
+    private final BotService botService;
     private final BotConfig botConfig;
 
     @SneakyThrows
-    public MyBot(BotServiceImpl botService, BotConfig botConfig) {
-        this.botServiceImpl = botService;
+    public MyBot(BotService botService, BotConfig botConfig) {
+        this.botService = botService;
         this.botConfig = botConfig;
 
         List<BotCommand> commandList = new ArrayList<>();
@@ -43,7 +43,7 @@ public class MyBot extends TelegramLongPollingBot {
     @SneakyThrows
     @Override
     public void onUpdateReceived(Update update) {
-        BotApiMethod<?> botApiMethod = botServiceImpl.onUpdateReceived(update);
+        BotApiMethod<?> botApiMethod = botService.onUpdateReceived(update);
         execute(botApiMethod);
     }
 }
