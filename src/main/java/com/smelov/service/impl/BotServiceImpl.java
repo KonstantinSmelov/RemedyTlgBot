@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
@@ -28,7 +29,7 @@ public class BotServiceImpl implements BotService {
 
     @Override
     @SneakyThrows
-    public SendMessage onUpdateReceived(Update update) {
+    public BotApiMethod<?> onUpdateReceived(Update update) {
         log.info("=====> вход в onUpdateReceived() <=====");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
@@ -66,16 +67,19 @@ public class BotServiceImpl implements BotService {
     private SendMessage messageTextHandler(Update update, Long userId) {
         log.info("----> вход в messageTextHandler() <----");
         SendMessage message = new SendMessage();
+        message.setText("Выберете пункт меню");
 
         message.setChatId(update.getMessage().getChatId());
         switch (update.getMessage().getText()) {
             case "/by_name":
-                message.setText(textMessageService.allInfoListSortedByName(medicineService.getAllMeds()));
+                userStatusService.setCurrentStatus(userId, Status.NONE.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator((o1, o2) -> o1.getName().compareTo(o2.getName())).setMedicine(new Medicine()));
+                message.setText(textMessageService.allInfoList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                 break;
 
             case "/by_exp_date":
-                message.setText(textMessageService.allInfoListSortedByExpDate(medicineService.getAllMeds()));
+                userStatusService.setCurrentStatus(userId, Status.NONE.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator((o1, o2) -> o1.getExpDate().compareTo(o2.getExpDate())).setMedicine(new Medicine()));
+                message.setText(textMessageService.allInfoList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                 break;
 
@@ -94,23 +98,24 @@ public class BotServiceImpl implements BotService {
     private SendMessage callbackQueryHandler(Update update, Long userId) {
         log.info("----> вход в callbackQueryHandler() <----");
         SendMessage message = new SendMessage();
+        Status status = userStatusService.getCurrentStatus(userId);
 
         message.setChatId(updateService.getChatId(update));
         switch (update.getCallbackQuery().getData()) {
             case "DEL_BUTTON":
                 log.info("DEL_BUTTON");
-                message.setText("Введите порядковый номер лекарства для удаления");
-                userStatusService.setCurrentStatus(userId, Status.DEL.setMedicine(new Medicine()));
+                message.setText("Введите порядковый номер лекарства для удаления:");
+                userStatusService.setCurrentStatus(userId, Status.DEL.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator(status.getComparator()).setMedicine(new Medicine()));
                 break;
             case "EDIT_BUTTON":
                 log.info("EDIT_BUTTON");
-                message.setText("Введите порядковый номер лекарства для редактирования");
-                userStatusService.setCurrentStatus(userId, Status.EDIT.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setMedicine(new Medicine()));
+                message.setText("Введите порядковый номер лекарства для редактирования:");
+                userStatusService.setCurrentStatus(userId, Status.EDIT.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator(status.getComparator()).setMedicine(new Medicine()));
                 break;
             case "ADD_BUTTON":
                 log.info("ADD_BUTTON");
-                message.setText("Введите имя лекарства для добавления");
-                userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.NAME).setEditStatus(EditStatus.NONE).setMedicine(new Medicine()));
+                message.setText("Введите название лекарства, которое вы хотите добавить:");
+                userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.NAME).setEditStatus(EditStatus.NONE).setComparator(status.getComparator()).setMedicine(new Medicine()));
                 break;
         }
         log.info("<---- выход из callbackQueryHandler() ---->");
@@ -119,18 +124,19 @@ public class BotServiceImpl implements BotService {
 
     private SendMessage currentStatusHandler(Update update, Status currentStatus) {
         log.info("----> вход в currentStatusHandler() <----");
+        Long userId = updateService.getUserId(update);
 
         switch (currentStatus) {
             case DEL:
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
-                return medicineService.deleteMedByNumber(update);
+                return medicineService.deleteMedByNumber(update, userStatusService.getCurrentStatus(userId).getComparator());
             case EDIT:
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
-                return medicineService.editMedByNumber(update);
+                return medicineService.editMedByNumber(update, userStatusService.getCurrentStatus(userId).getComparator());
             case ADD:
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
@@ -146,4 +152,5 @@ public class BotServiceImpl implements BotService {
                 return message;
         }
     }
+
 }

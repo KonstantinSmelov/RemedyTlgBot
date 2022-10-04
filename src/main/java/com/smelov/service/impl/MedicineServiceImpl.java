@@ -18,8 +18,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 
 import java.sql.Date;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,8 +36,14 @@ public class MedicineServiceImpl implements MedicineService {
     private final DateService dateService;
 
     @Override
-    public List<Medicine> getAllMeds() {
-        return medicineRepository.findAll();
+    public List<Medicine> getAllMeds(Comparator<Medicine> comparator) {
+        log.debug("----> вход в getAllMeds() <----");
+        List<Medicine> meds = medicineRepository.findAll();
+        log.debug("getAllMeds(): получили список из БД: {}", meds.stream().map(Medicine::getName).collect(Collectors.toList()));
+        meds.sort(comparator);
+        log.debug("getAllMeds(): отсортировали список: {}", meds.stream().map(Medicine::getName).collect(Collectors.toList()));
+        log.debug("<---- выход из getAllMeds() ---->");
+        return meds;
     }
 
     @Override
@@ -64,7 +72,7 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
-    public SendMessage editMedByNumber(Update update) {
+    public SendMessage editMedByNumber(Update update, Comparator<Medicine> comparator) {
         log.info("----> вход в editMedByNumber() <----");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
@@ -113,14 +121,15 @@ public class MedicineServiceImpl implements MedicineService {
         switch (status.getEditStatus()) {
             case NONE:
                 log.debug("editMedByNumber(), блок case NONE");
-                medicine = getMedByNumber(update);
+                medicine = getMedByNumber(update, comparator);
                 if (medicine != null) {
                     status.setMedicine(medicine);
                     message.setText("Выбрано лекарство:\n" + textFromChat + " - " + medicine.getName() +
                             " - " + medicine.getDosage() + " - " + medicine.getQuantity() +
                             " - " + medicine.getExpDate() + "\n\nЧто меняем?");
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
-                    System.out.println(status);
+                } else {
+                    message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
                 }
                 break;
 
@@ -182,7 +191,7 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
-    public SendMessage deleteMedByNumber(Update update) {
+    public SendMessage deleteMedByNumber(Update update, Comparator<Medicine> comparator) {
         log.info("----> вход в deleteMedByNumber() <----");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
@@ -199,7 +208,7 @@ public class MedicineServiceImpl implements MedicineService {
 //            return message;
 //        }
 
-        medicine = getMedByNumber(update);
+        medicine = getMedByNumber(update, comparator);
 
         if (medicine != null) {
             log.debug("deleteMedByNumber(): Нашли лекарство {}", medicine);
@@ -313,7 +322,7 @@ public class MedicineServiceImpl implements MedicineService {
                         log.info("В базу сохранено лекарство: {}", newMed);
                         message.setText(String.format("Вы добавили %s в базу", newMed.getName()));
                     } else {
-                        message.setText(String.format("%s\n%s\n%s\n\nУже есть в базе!\nЕсли вы ходите изменить кол-во имеющегося лекарства, то выберите пункт меню редактировать", newMed.getName(), newMed.getDosage(), newMed.getExpDate().toString()));
+                        message.setText(String.format("%s\n%s\n%s\n\nУже есть в базе!\nЕсли вы ходите изменить кол-во имеющегося лекарства, то выберите пункт меню ИЗМЕНИТЬ", newMed.getName(), newMed.getDosage(), newMed.getExpDate().toString()));
                     }
                     userStatusService.resetStatus(userId);
 
@@ -327,14 +336,15 @@ public class MedicineServiceImpl implements MedicineService {
         return message;
     }
 
-    private Medicine getMedByNumber(Update update) {
+    private Medicine getMedByNumber(Update update, Comparator<Medicine> comparator) {
         String textFromChat = updateService.getTextFromMessage(update);
         Medicine medicine;
+        List<Medicine> meds = getAllMeds(comparator);
 
-        for (int x = 1; x <= getAllMeds().size(); x++) {
+        for (int x = 1; x <= meds.size(); x++) {
             log.info("X = {}, textFromChat = {}", x, textFromChat);
             if (String.valueOf(x).equals(textFromChat)) {
-                medicine = getAllMeds().get(x - 1);
+                medicine = getAllMeds(comparator).get(x - 1);
                 log.debug("getMedByNumber(): Нашли лекарство {}", medicine);
                 return medicine;
             }

@@ -4,6 +4,8 @@ import com.smelov.entity.Medicine;
 import com.smelov.service.TextMessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -12,7 +14,7 @@ import java.util.List;
 public class TextMessageServiceImpl implements TextMessageService {
 
     @Override
-    public String nameAndDosageListSortedByLastAction(List<Medicine> meds) {
+    public String nameAndDosageList(List<Medicine> meds) {
         log.info("----> вход в nameAndDosageListSortedByLastAction() <----");
         StringBuilder string = new StringBuilder();
         int x = 1;
@@ -37,37 +39,8 @@ public class TextMessageServiceImpl implements TextMessageService {
     }
 
     @Override
-    public String allInfoListSortedByName(List<Medicine> meds) {
-        log.info("----> вход в allInfoListSortedByName() <----");
-        StringBuilder string = new StringBuilder();
-        meds.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
-
-        int x = 1;
-        for (Medicine med : meds) {
-            string
-                    .append(x++)
-                    .append(" - ")
-                    .append(med.getName())
-                    .append(" - ")
-                    .append(med.getDosage())
-                    .append(" - ")
-                    .append(med.getQuantity())
-                    .append(" - ")
-                    .append(med.getTextExpDate())
-                    .append("\n");
-        }
-
-        if(string.length() == 0) {
-            log.info("<---- выход из allInfoListSortedByName() ---->");
-            return string.append("ПУСТО").toString();
-        }
-        log.info("<---- выход из allInfoListSortedByName() ---->");
-        return string.toString();
-    }
-
-    @Override
-    public String allInfoListSortedByLastAction(List<Medicine> meds) {
-        log.info("----> вход в allInfoListSortedByLastAction() <----");
+    public String allInfoList(List<Medicine> meds) {
+        log.info("----> вход в allInfoList() <----");
         StringBuilder string = new StringBuilder();
 
         int x = 1;
@@ -86,39 +59,10 @@ public class TextMessageServiceImpl implements TextMessageService {
         }
 
         if(string.length() == 0) {
-            log.info("<---- выход из allInfoListSortedByLastAction() ---->");
+            log.info("<---- выход из allInfoList() ---->");
             return string.append("ПУСТО").toString();
         }
-        log.info("<---- выход из allInfoListSortedByLastAction() ---->");
-        return string.toString();
-    }
-
-    @Override
-    public String allInfoListSortedByExpDate(List<Medicine> meds) {
-        log.info("----> вход в allInfoListSortedByExpDate() <----");
-        StringBuilder string = new StringBuilder();
-        meds.sort((o1, o2) -> o1.getTextExpDate().compareTo(o2.getTextExpDate()));
-
-        int x = 1;
-        for (Medicine med : meds) {
-            string
-                    .append(x++)
-                    .append(" - ")
-                    .append(med.getName())
-                    .append(" - ")
-                    .append(med.getDosage())
-                    .append(" - ")
-                    .append(med.getQuantity())
-                    .append(" - ")
-                    .append(med.getTextExpDate())
-                    .append("\n");
-        }
-
-        if(string.length() == 0) {
-            log.info("<---- выход из allInfoListSortedByExpDate() ---->");
-            return string.append("ПУСТО").toString();
-        }
-        log.info("<---- выход из allInfoListSortedByExpDate() ---->");
+        log.info("<---- выход из allInfoList() ---->");
         return string.toString();
     }
 }

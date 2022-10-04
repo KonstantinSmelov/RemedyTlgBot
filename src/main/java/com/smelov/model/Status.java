@@ -2,12 +2,15 @@ package com.smelov.model;
 
 import com.smelov.entity.Medicine;
 
+import java.util.Comparator;
+
 public enum Status {
     NONE, ADD, DEL, EDIT;
 
     private Medicine medicine;
     private EditStatus editStatus = EditStatus.NONE;
     private AddStatus addStatus = AddStatus.NONE;
+    private Comparator<Medicine> comparator;
 
     public AddStatus getAddStatus() {
         return addStatus;
@@ -33,6 +36,15 @@ public enum Status {
 
     public Status setMedicine(Medicine medicine) {
         this.medicine = medicine;
+        return this;
+    }
+
+    public Comparator<Medicine> getComparator() {
+        return comparator;
+    }
+
+    public Status setComparator(Comparator<Medicine> comparator) {
+        this.comparator = comparator;
         return this;
     }
 

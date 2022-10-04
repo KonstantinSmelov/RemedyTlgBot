@@ -44,9 +44,4 @@ public class Medicine {
     public String getTextExpDate() {
         return this.getExpDate().toString().substring(0, getExpDate().toString().length() - 3);
     }
-
-//    @Override
-//    public int compareTo(Medicine o) {
-//        return this.getName().compareTo(o.getName());
-//    }
 }
