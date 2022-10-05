@@ -1,4 +1,4 @@
-package com.smelov.bot;
+package com.smelov.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,6 +1,6 @@
 package com.smelov.service.impl;
 
-import com.smelov.bot.CustomInlineKeyboardMarkup;
+import com.smelov.keyboard.CustomInlineKeyboardMarkup;
 import com.smelov.dao.MedicineRepository;
 import com.smelov.entity.Medicine;
 import com.smelov.model.AddStatus;

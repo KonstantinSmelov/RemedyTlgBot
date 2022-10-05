@@ -1,35 +1,74 @@
 package com.smelov.service.impl;
 
-import com.smelov.bot.CustomInlineKeyboardMarkup;
+import com.smelov.config.BotConfig;
+import com.smelov.keyboard.CustomInlineKeyboardMarkup;
 import com.smelov.entity.Medicine;
 import com.smelov.model.AddStatus;
 import com.smelov.model.EditStatus;
 import com.smelov.model.Status;
 import com.smelov.service.*;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.File;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
-public class BotServiceImpl implements BotService {
+public class RemedyBot extends TelegramLongPollingBot {
 
     private final MedicineService medicineService;
     private final UserStatusService userStatusService;
     private final CustomInlineKeyboardMarkup customInlineKeyboardMarkup;
-    //    private final CustomReplyKeyboardMarkup customReplyKeyboardMarkup;
     private final UpdateService updateService;
     private final TextMessageService textMessageService;
+    private final BotConfig botConfig;
+
+    @SneakyThrows
+    public RemedyBot(MedicineService medicineService, UserStatusService userStatusService, CustomInlineKeyboardMarkup customInlineKeyboardMarkup, UpdateService updateService, TextMessageService textMessageService, BotConfig botConfig) {
+        this.medicineService = medicineService;
+        this.userStatusService = userStatusService;
+        this.customInlineKeyboardMarkup = customInlineKeyboardMarkup;
+        this.updateService = updateService;
+        this.textMessageService = textMessageService;
+        this.botConfig = botConfig;
+
+        List<BotCommand> commandList = new ArrayList<>();
+        commandList.add(new BotCommand("/by_name", "Список по названию"));
+        commandList.add(new BotCommand("/by_exp_date", "Список по сроку годности"));
+        commandList.add(new BotCommand("/exit", "Выход в главное меню"));
+        execute(new SetMyCommands(commandList, new BotCommandScopeDefault(), null));
+    }
+
+    @Override
+    public String getBotUsername() {
+        return botConfig.getBotName();
+    }
+
+    @Override
+    public String getBotToken() {
+        return botConfig.getToken();
+    }
+
 
     @Override
     @SneakyThrows
-    public BotApiMethod<?> onUpdateReceived(Update update) {
+    public void onUpdateReceived(Update update) {
         log.info("=====> вход в onUpdateReceived() <=====");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
@@ -37,30 +76,45 @@ public class BotServiceImpl implements BotService {
         message.setChatId(updateService.getChatId(update));
         message.setText("Простите, не понял в onUpdateReceived");
 
+        if (update.hasMessage() && update.getMessage().hasPhoto()) {
+            log.info("----> вход в hasPhoto() <----");
+
+            GetFile getFile = new GetFile();
+            getFile.setFileId(update.getMessage().getPhoto().get(3).getFileId());
+            File file = execute(getFile);
+            downloadFile(file, new java.io.File("./src/main/resources/photo/" + String.valueOf(Math.random()).substring(3, 8) + ".jpg"));
+
+            message.setText("Фото отправлено в БД");
+            execute(message);
+            log.info("<---- выход из hasPhoto() ---->");
+            return;
+        }
+
         //Обнуление статуса и выход в гл. меню из любого статуса
         if (update.hasMessage() && update.getMessage().getText().equals("/exit")) {
             log.info("Возвращаемся в гл. меню, обнуляем статус");
             userStatusService.resetStatus(userId);
             message.setReplyMarkup(new ReplyKeyboardRemove(true));
             message.setText("Вышли в главное меню");
+            execute(message);
             log.info("<===== выход из onUpdateReceived() =====>\n");
-            return message;
+            return;
         }
 
-        //Первичная отработка текстовых команд верхнего уровня (гл. меню) (Установка Status в ADD/EDIT/DEL)
-        System.out.println(userStatusService.getStatusMap());
+
+        //Обработка текстовых команд верхнего уровня (гл. меню) (Установка Status в ADD/EDIT/DEL)
         if ((status != Status.NONE)) {
             message = currentStatusHandler(update, status);
+            execute(message);
             log.info("<===== выход из onUpdateReceived() =====>\n");
-            return message;
         } else if (update.hasCallbackQuery()) {
             message = callbackQueryHandler(update, userId);
+            execute(message);
             log.info("<===== выход из onUpdateReceived() =====>\n");
-            return message;
         } else {
             message = messageTextHandler(update, userId);
+            execute(message);
             log.info("<===== выход из onUpdateReceived() =====>\n");
-            return message;
         }
     }
 
@@ -85,6 +139,19 @@ public class BotServiceImpl implements BotService {
 
             case "/start":
                 message.setText("Добро пожаловать!\n\nЯ бот, который поможет в учёте лекарств в вашей домашней аптечке");
+                break;
+
+            case "/photo":
+                SendPhoto sendPhoto = new SendPhoto();
+                sendPhoto.setChatId(userId);
+                InputFile inputFile = new InputFile("./src/main/resources/photo/89687.jpg");
+                sendPhoto.setPhoto(inputFile);
+                try {
+                    execute(sendPhoto);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+                message.setText("Выслано фото");
                 break;
 
             default:

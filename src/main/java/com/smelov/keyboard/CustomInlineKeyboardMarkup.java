@@ -1,4 +1,4 @@
-package com.smelov.bot;
+package com.smelov.keyboard;
 
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
