@@ -49,6 +49,7 @@ public class RemedyBot extends TelegramLongPollingBot {
         commandList.add(new BotCommand("/by_name", "Список по названию"));
         commandList.add(new BotCommand("/by_exp_date", "Список по сроку годности"));
         commandList.add(new BotCommand("/exit", "Выход в главное меню"));
+        commandList.add(new BotCommand("/photo", "дай фото обратно"));
         execute(new SetMyCommands(commandList, new BotCommandScopeDefault(), null));
     }
 
@@ -79,7 +80,7 @@ public class RemedyBot extends TelegramLongPollingBot {
             GetFile getFile = new GetFile();
             getFile.setFileId(update.getMessage().getPhoto().get(3).getFileId());
             File file = execute(getFile);
-            downloadFile(file, new java.io.File("./src/main/resources/photo/" + String.valueOf(Math.random()).substring(3, 8) + ".jpg"));
+            downloadFile(file, new java.io.File("./src/main/resources/photo/" + "1.jpg")); //String.valueOf(Math.random()).substring(3, 8) + ".jpg"));
 
             message.setText("Фото отправлено в БД");
             execute(message);
@@ -144,7 +145,7 @@ public class RemedyBot extends TelegramLongPollingBot {
                 photo.setChatId(userId);
 
                 InputFile inputFile = new InputFile();
-                inputFile.setMedia(new java.io.File("src/main/resources/photo", "21144.jpg"));
+                inputFile.setMedia(new java.io.File("src/main/resources/photo", "1.jpg"));
 
                 photo.setPhoto(inputFile);
                 try {
