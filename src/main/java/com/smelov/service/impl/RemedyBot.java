@@ -22,9 +22,6 @@ import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,6 +115,7 @@ public class RemedyBot extends TelegramLongPollingBot {
         }
     }
 
+    @SneakyThrows
     private SendMessage messageTextHandler(Update update, Long userId) {
         log.info("----> вход в messageTextHandler() <----");
         SendMessage message = new SendMessage();
@@ -142,12 +140,15 @@ public class RemedyBot extends TelegramLongPollingBot {
                 break;
 
             case "/photo":
-                SendPhoto sendPhoto = new SendPhoto();
-                sendPhoto.setChatId(userId);
-                InputFile inputFile = new InputFile("./src/main/resources/photo/89687.jpg");
-                sendPhoto.setPhoto(inputFile);
+                SendPhoto photo = new SendPhoto();
+                photo.setChatId(userId);
+
+                InputFile inputFile = new InputFile();
+                inputFile.setMedia(new java.io.File("src/main/resources/photo", "21144.jpg"));
+
+                photo.setPhoto(inputFile);
                 try {
-                    execute(sendPhoto);
+                    execute(photo);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
