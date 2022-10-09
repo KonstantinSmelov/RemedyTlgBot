@@ -52,6 +52,7 @@ public class CustomInlineKeyboardMarkup {
         InlineKeyboardButton cancel_Button = new InlineKeyboardButton();
         InlineKeyboardButton del_Button = new InlineKeyboardButton();
         InlineKeyboardButton add_Button = new InlineKeyboardButton();
+        InlineKeyboardButton detail_Button = new InlineKeyboardButton();
 
         cancel_Button.setText("ИЗМЕНИТЬ");
         cancel_Button.setCallbackData("EDIT_BUTTON");
@@ -59,10 +60,13 @@ public class CustomInlineKeyboardMarkup {
         del_Button.setCallbackData("DEL_BUTTON");
         add_Button.setText("ДОБАВИТЬ");
         add_Button.setCallbackData("ADD_BUTTON");
+        detail_Button.setText("СМОТРЕТЬ ФОТО");
+        detail_Button.setCallbackData("DETAIL_BUTTON");
 
         buttonsRow1.add(cancel_Button);
         buttonsRow1.add(del_Button);
         buttonsRow2.add(add_Button);
+        buttonsRow2.add(detail_Button);
         rowList.add(buttonsRow1);
         rowList.add(buttonsRow2);
         inlineKeyboardMarkup.setKeyboard(rowList);

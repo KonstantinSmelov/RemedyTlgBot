@@ -6,6 +6,7 @@ target/
 .mvn
 mvnw.cmd
 mvnw
+src/main/resources/photo
 
 ### STS ###
 .apt_generated

@@ -1,70 +1,40 @@
 package com.smelov.service.impl;
 
-import com.smelov.config.BotConfig;
-import com.smelov.keyboard.CustomInlineKeyboardMarkup;
+import com.smelov.bot.RemedyBot;
 import com.smelov.entity.Medicine;
+import com.smelov.keyboard.CustomInlineKeyboardMarkup;
 import com.smelov.model.AddStatus;
 import com.smelov.model.EditStatus;
 import com.smelov.model.Status;
-import com.smelov.service.*;
+import com.smelov.service.MedicineService;
+import com.smelov.service.TextMessageService;
+import com.smelov.service.UpdateService;
+import com.smelov.service.UserStatusService;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
-import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @Slf4j
-public class RemedyBot extends TelegramLongPollingBot {
+@RequiredArgsConstructor
+public class UpdateHandlerImpl {
 
-    private final MedicineService medicineService;
-    private final UserStatusService userStatusService;
-    private final CustomInlineKeyboardMarkup customInlineKeyboardMarkup;
+    private final RemedyBot remedyBot;
     private final UpdateService updateService;
+    private final UserStatusService userStatusService;
     private final TextMessageService textMessageService;
-    private final BotConfig botConfig;
+    private final MedicineService medicineService;
+    private final CustomInlineKeyboardMarkup customInlineKeyboardMarkup;
 
-    @SneakyThrows
-    public RemedyBot(MedicineService medicineService, UserStatusService userStatusService, CustomInlineKeyboardMarkup customInlineKeyboardMarkup, UpdateService updateService, TextMessageService textMessageService, BotConfig botConfig) {
-        this.medicineService = medicineService;
-        this.userStatusService = userStatusService;
-        this.customInlineKeyboardMarkup = customInlineKeyboardMarkup;
-        this.updateService = updateService;
-        this.textMessageService = textMessageService;
-        this.botConfig = botConfig;
-
-        List<BotCommand> commandList = new ArrayList<>();
-        commandList.add(new BotCommand("/by_name", "Список по названию"));
-        commandList.add(new BotCommand("/by_exp_date", "Список по сроку годности"));
-        commandList.add(new BotCommand("/exit", "Выход в главное меню"));
-        commandList.add(new BotCommand("/photo", "дай фото обратно"));
-        execute(new SetMyCommands(commandList, new BotCommandScopeDefault(), null));
-    }
-
-    @Override
-    public String getBotUsername() {
-        return botConfig.getBotName();
-    }
-
-    @Override
-    public String getBotToken() {
-        return botConfig.getToken();
-    }
-
-
-    @Override
     @SneakyThrows
     public void onUpdateReceived(Update update) {
         log.info("=====> вход в onUpdateReceived() <=====");
@@ -74,44 +44,45 @@ public class RemedyBot extends TelegramLongPollingBot {
         message.setChatId(updateService.getChatId(update));
         message.setText("Простите, не понял в onUpdateReceived");
 
-        if (update.hasMessage() && update.getMessage().hasPhoto()) {
-            log.info("----> вход в hasPhoto() <----");
-
-            GetFile getFile = new GetFile();
-            getFile.setFileId(update.getMessage().getPhoto().get(3).getFileId());
-            File file = execute(getFile);
-            downloadFile(file, new java.io.File("./src/main/resources/photo/" + "1.jpg")); //String.valueOf(Math.random()).substring(3, 8) + ".jpg"));
-
-            message.setText("Фото отправлено в БД");
-            execute(message);
-            log.info("<---- выход из hasPhoto() ---->");
-            return;
-        }
+//        if (update.hasMessage() && update.getMessage().hasPhoto()) {
+//            log.info("----> вход в hasPhoto() <----");
+//
+//            GetFile getFile = new GetFile();
+//            getFile.setFileId(update.getMessage().getPhoto().get(3).getFileId());
+//            File file = remedyBot.execute(getFile);
+//            remedyBot.downloadFile(file, new java.io.File("./src/main/resources/photo/" + "1.jpg")); //String.valueOf(Math.random()).substring(3, 8) + ".jpg"));
+//
+//            message.setText("Фото отправлено в БД");
+//            remedyBot.execute(message);
+//            log.info("<---- выход из hasPhoto() ---->");
+//            return;
+//        }
 
         //Обнуление статуса и выход в гл. меню из любого статуса
-        if (update.hasMessage() && update.getMessage().getText().equals("/exit")) {
+        if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/exit")) {
             log.info("Возвращаемся в гл. меню, обнуляем статус");
             userStatusService.resetStatus(userId);
             message.setReplyMarkup(new ReplyKeyboardRemove(true));
             message.setText("Вышли в главное меню");
-            execute(message);
+            remedyBot.execute(message);
             log.info("<===== выход из onUpdateReceived() =====>\n");
             return;
         }
 
-
-        //Обработка текстовых команд верхнего уровня (гл. меню) (Установка Status в ADD/EDIT/DEL)
+        //Обработка текстовых команд верхнего уровня (гл. меню)
         if ((status != Status.NONE)) {
             message = currentStatusHandler(update, status);
-            execute(message);
+            if(!(message.getText().equals("null"))) {
+                remedyBot.execute(message);
+            }
             log.info("<===== выход из onUpdateReceived() =====>\n");
         } else if (update.hasCallbackQuery()) {
             message = callbackQueryHandler(update, userId);
-            execute(message);
+            remedyBot.execute(message);
             log.info("<===== выход из onUpdateReceived() =====>\n");
         } else {
             message = messageTextHandler(update, userId);
-            execute(message);
+            remedyBot.execute(message);
             log.info("<===== выход из onUpdateReceived() =====>\n");
         }
     }
@@ -149,7 +120,7 @@ public class RemedyBot extends TelegramLongPollingBot {
 
                 photo.setPhoto(inputFile);
                 try {
-                    execute(photo);
+                    remedyBot.execute(photo);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
@@ -186,11 +157,17 @@ public class RemedyBot extends TelegramLongPollingBot {
                 message.setText("Введите название лекарства, которое вы хотите добавить:");
                 userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.NAME).setEditStatus(EditStatus.NONE).setComparator(status.getComparator()).setMedicine(new Medicine()));
                 break;
+            case "DETAIL_BUTTON":
+                log.info("DETAIL_BUTTON");
+                message.setText("Введите порядковый номер лекарства для показа деталей:");
+                userStatusService.setCurrentStatus(userId, Status.DETAIL.setAddStatus(AddStatus.NAME).setEditStatus(EditStatus.NONE).setComparator(status.getComparator()).setMedicine(new Medicine()));
+                break;
         }
         log.info("<---- выход из callbackQueryHandler() ---->");
         return message;
     }
 
+    @SneakyThrows
     private SendMessage currentStatusHandler(Update update, Status currentStatus) {
         log.info("----> вход в currentStatusHandler() <----");
         Long userId = updateService.getUserId(update);
@@ -211,6 +188,17 @@ public class RemedyBot extends TelegramLongPollingBot {
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
                 return medicineService.addMedicine(update);
+            case DETAIL:
+                log.debug("Получили статус {}", currentStatus);
+                log.info("<---- выход из currentStatusHandler() ---->");
+                log.info("<---- выход из onUpdateReceived() ---->");
+                Medicine medicine = medicineService.getMedByNumber(update, currentStatus.getComparator());
+                SendPhoto photo = medicineService.getMedicinePhoto(medicine);
+                photo.setChatId(updateService.getChatId(update));
+                photo.setCaption(medicine.getName() + " - " + medicine.getDosage() + " - " + medicine.getQuantity() + " - " + medicine.getTextExpDate());
+                remedyBot.execute(photo);
+                userStatusService.resetStatus(userId);
+                return SendMessage.builder().chatId(updateService.getChatId(update)).text("null").build();
             default:
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
@@ -221,5 +209,4 @@ public class RemedyBot extends TelegramLongPollingBot {
                 return message;
         }
     }
-
 }
