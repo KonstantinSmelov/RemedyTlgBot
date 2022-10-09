@@ -111,22 +111,6 @@ public class UpdateHandlerImpl {
                 message.setText("Добро пожаловать!\n\nЯ бот, который поможет в учёте лекарств в вашей домашней аптечке");
                 break;
 
-            case "/photo":
-                SendPhoto photo = new SendPhoto();
-                photo.setChatId(userId);
-
-                InputFile inputFile = new InputFile();
-                inputFile.setMedia(new java.io.File("src/main/resources/photo", "1.jpg"));
-
-                photo.setPhoto(inputFile);
-                try {
-                    remedyBot.execute(photo);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-                message.setText("Выслано фото");
-                break;
-
             default:
                 message.setText("Простите, не понял в messageTextHandler");
                 break;
@@ -178,27 +162,38 @@ public class UpdateHandlerImpl {
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
                 return medicineService.deleteMedByNumber(update, userStatusService.getCurrentStatus(userId).getComparator());
+
             case EDIT:
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
                 return medicineService.editMedByNumber(update, userStatusService.getCurrentStatus(userId).getComparator());
+
             case ADD:
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
                 return medicineService.addMedicine(update);
+
             case DETAIL:
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
                 Medicine medicine = medicineService.getMedByNumber(update, currentStatus.getComparator());
+                if(medicine == null) {
+                    return SendMessage.builder().chatId(updateService.getChatId(update)).text(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", updateService.getTextFromMessage(update))).build();
+                }
                 SendPhoto photo = medicineService.getMedicinePhoto(medicine);
+                if(photo == null) {
+                    userStatusService.resetStatus(userId);
+                    return SendMessage.builder().chatId(updateService.getChatId(update)).text(String.format("Фото для [%s] не назначено!", medicine.getName() + " - " + medicine.getDosage())).build();
+                }
                 photo.setChatId(updateService.getChatId(update));
                 photo.setCaption(medicine.getName() + " - " + medicine.getDosage() + " - " + medicine.getQuantity() + " - " + medicine.getTextExpDate());
                 remedyBot.execute(photo);
                 userStatusService.resetStatus(userId);
                 return SendMessage.builder().chatId(updateService.getChatId(update)).text("null").build();
+
             default:
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");

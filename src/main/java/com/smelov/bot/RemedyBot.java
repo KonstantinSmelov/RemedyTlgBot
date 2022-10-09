@@ -31,7 +31,6 @@ public class RemedyBot extends TelegramLongPollingBot {
         commandList.add(new BotCommand("/by_name", "Список по названию"));
         commandList.add(new BotCommand("/by_exp_date", "Список по сроку годности"));
         commandList.add(new BotCommand("/exit", "Выход в главное меню"));
-        commandList.add(new BotCommand("/photo", "дай фото обратно"));
         execute(new SetMyCommands(commandList, new BotCommandScopeDefault(), null));
     }
 

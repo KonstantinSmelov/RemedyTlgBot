@@ -95,7 +95,7 @@ public class MedicineServiceImpl implements MedicineService {
                 case "EDIT_NAME_BUTTON":
                     log.info("EDIT_NAME_BUTTON");
                     message.setReplyMarkup(new ReplyKeyboardRemove(true));
-                    message.setText(String.format("Заменить %s на:", medicine.getName()));
+                    message.setText(String.format("Заменить [%s] на:", medicine.getName()));
                     userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_NAME).setMedicine(medicine));
                     log.info("<---- выход из editMedByNumber() ---->");
                     return message;
@@ -103,7 +103,7 @@ public class MedicineServiceImpl implements MedicineService {
                 case "EDIT_DOSAGE_BUTTON":
                     log.info("EDIT_DOSAGE_BUTTON");
                     message.setReplyMarkup(new ReplyKeyboardRemove(true));
-                    message.setText(String.format("Заменить %s на:", extractDataWithoutUnits(medicine.getDosage())));
+                    message.setText(String.format("Заменить [%s] на:", extractDataWithoutUnits(medicine.getDosage())));
                     userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_DOSAGE).setMedicine(medicine));
                     log.info("<---- выход из editMedByNumber() ---->");
                     return message;
@@ -111,7 +111,7 @@ public class MedicineServiceImpl implements MedicineService {
                 case "EDIT_QUANTITY_BUTTON":
                     log.info("EDIT_QUANTITY_BUTTON");
                     message.setReplyMarkup(new ReplyKeyboardRemove(true));
-                    message.setText(String.format("Заменить %s на:", extractDataWithoutUnits(medicine.getQuantity())));
+                    message.setText(String.format("Заменить [%s] на:", extractDataWithoutUnits(medicine.getQuantity())));
                     userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_QTY).setMedicine(medicine));
                     log.info("<---- выход из editMedByNumber() ---->");
                     return message;
@@ -119,9 +119,22 @@ public class MedicineServiceImpl implements MedicineService {
                 case "EDIT_EXP_DATE_BUTTON":
                     log.info("EDIT_EXP_DATE_BUTTON");
                     message.setReplyMarkup(new ReplyKeyboardRemove(true));
-                    message.setText(String.format("Заменить %s на (введите год и месяц через пробел):", medicine.getTextExpDate()));
+                    message.setText(String.format("Заменить [%s] на (введите год и месяц через пробел):", medicine.getTextExpDate()));
                     userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_EXP).setMedicine(medicine));
                     log.info("<---- выход из editMedByNumber() ---->");
+                    return message;
+
+                case "EDIT_PHOTO_BUTTON":
+                    log.info("EDIT_PHOTO_BUTTON");
+                    message.setReplyMarkup(new ReplyKeyboardRemove(true));
+                    SendPhoto photo = getMedicinePhoto(medicine);
+                    if ((photo == null)) {
+                        message.setText(String.format("Фото для [%s] не назначено!", medicine.getName() + " - " + medicine.getDosage()));
+                        userStatusService.resetStatus(userId);
+                    } else {
+                        message.setText(String.format("Сделайте новое фото для [%s]", medicine.getName() + " - " + medicine.getDosage()));
+                        userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_PHOTO).setMedicine(medicine));
+                    }
                     return message;
             }
         }
@@ -192,6 +205,17 @@ public class MedicineServiceImpl implements MedicineService {
                 } else {
                     message.setText("Введите ГОД и МЕСЯЦ через пробел");
                 }
+                break;
+
+            case EDIT_PHOTO:
+                log.debug("editMedByNumber(), блок case EDIT_PHOTO");
+
+                deleteMedicinePhoto(medicine);
+                setMedicinePhoto(update, medicine);
+
+                userStatusService.resetStatus(userId);
+                message.setText("Фото изменено");
+
                 break;
         }
         log.info("<---- выход из editMedByNumber() ---->");
@@ -405,10 +429,14 @@ public class MedicineServiceImpl implements MedicineService {
 
     @SneakyThrows
     public SendPhoto getMedicinePhoto(Medicine medicine) {
-        SendPhoto photo = new SendPhoto();
-        InputFile inputFile = new InputFile();
-        inputFile.setMedia(new java.io.File("./src/main/resources/photo/" + medicine.getName() + "_" + medicine.getDosage() + ".jpg"));
-        photo.setPhoto(inputFile);
+        SendPhoto photo = null;
+        java.io.File file = new java.io.File("./src/main/resources/photo/" + medicine.getName() + "_" + medicine.getDosage() + ".jpg");
+        if (file.exists()) {
+            photo = new SendPhoto();
+            InputFile inputFile = new InputFile();
+            inputFile.setMedia(file);
+            photo.setPhoto(inputFile);
+        }
         return photo;
     }
 
