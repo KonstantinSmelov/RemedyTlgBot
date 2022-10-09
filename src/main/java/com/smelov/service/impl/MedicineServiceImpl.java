@@ -303,6 +303,10 @@ public class MedicineServiceImpl implements MedicineService {
                             log.info("ML_BUTTON");
                             newMed.setDosage(newMed.getDosage() + " мл.");
                             break;
+                        case "SMT_BUTTON":
+                            log.info("SMT_BUTTON");
+//                            newMed.setDosage(newMed.getDosage() + "");
+                            break;
                     }
                 } else {
                     newMed.setDosage(newMed.getDosage() + " мг.");

@@ -44,20 +44,6 @@ public class UpdateHandlerImpl {
         message.setChatId(updateService.getChatId(update));
         message.setText("Простите, не понял в onUpdateReceived");
 
-//        if (update.hasMessage() && update.getMessage().hasPhoto()) {
-//            log.info("----> вход в hasPhoto() <----");
-//
-//            GetFile getFile = new GetFile();
-//            getFile.setFileId(update.getMessage().getPhoto().get(3).getFileId());
-//            File file = remedyBot.execute(getFile);
-//            remedyBot.downloadFile(file, new java.io.File("./src/main/resources/photo/" + "1.jpg")); //String.valueOf(Math.random()).substring(3, 8) + ".jpg"));
-//
-//            message.setText("Фото отправлено в БД");
-//            remedyBot.execute(message);
-//            log.info("<---- выход из hasPhoto() ---->");
-//            return;
-//        }
-
         //Обнуление статуса и выход в гл. меню из любого статуса
         if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/exit")) {
             log.info("Возвращаемся в гл. меню, обнуляем статус");

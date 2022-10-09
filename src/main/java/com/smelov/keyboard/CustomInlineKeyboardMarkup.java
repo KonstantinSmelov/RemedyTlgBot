@@ -100,17 +100,23 @@ public class CustomInlineKeyboardMarkup {
         inlineKeyboardMarkup = new InlineKeyboardMarkup();
         rowList = new ArrayList<>();
         List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow2 = new ArrayList<>();
         InlineKeyboardButton mgButton = new InlineKeyboardButton();
         InlineKeyboardButton pcButton = new InlineKeyboardButton();
+        InlineKeyboardButton smtButton = new InlineKeyboardButton();
 
         mgButton.setText("МИЛЛИГРАММЫ");
         mgButton.setCallbackData("MG_BUTTON");
         pcButton.setText("МИЛЛИЛИТРЫ");
         pcButton.setCallbackData("ML_BUTTON");
+        smtButton.setText("---");
+        smtButton.setCallbackData("SMT_BUTTON");
 
         buttonsRow1.add(mgButton);
         buttonsRow1.add(pcButton);
+        buttonsRow2.add(smtButton);
         rowList.add(buttonsRow1);
+        rowList.add(buttonsRow2);
         inlineKeyboardMarkup.setKeyboard(rowList);
 
         return inlineKeyboardMarkup;
