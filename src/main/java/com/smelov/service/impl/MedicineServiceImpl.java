@@ -22,7 +22,6 @@ import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.sql.Date;
 import java.util.Comparator;
@@ -52,16 +51,6 @@ public class MedicineServiceImpl implements MedicineService {
         log.debug("getAllMeds(): отсортировали список: {}", meds.stream().map(Medicine::getName).collect(Collectors.toList()));
         log.debug("<---- выход из getAllMeds() ---->");
         return meds;
-    }
-
-    @Override
-    public Medicine getMedById(Medicine medicine) {
-        return medicineRepository.getByNameAndDosageAndExpDate(medicine.getName(), medicine.getDosage(), medicine.getExpDate());
-    }
-
-    @Override
-    public void save(Medicine medicine) {
-        medicineRepository.save(medicine);
     }
 
     @Override
@@ -223,6 +212,48 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
+    @SneakyThrows
+    public SendMessage getDetailsByNumber(Update update, Comparator<Medicine> comparator) {
+        log.info("----> вход в getDetailsByNumber() <----");
+        SendMessage message = new SendMessage();
+        Long userId = updateService.getUserId(update);
+        Long chatId = updateService.getChatId(update);
+        String textFromChat = updateService.getTextFromMessage(update);
+        Status status = userStatusService.getCurrentStatus(userId);
+        Medicine medicine = getMedByNumber(update, status.getComparator());
+
+        message.setChatId(chatId);
+
+        if(medicine == null) {
+            message.setText(String.format("В базе нет лекарства с порядковым номером [%s]\nВведите корректный номер:", textFromChat));
+            return message;
+        }
+
+        SendPhoto photo = getMedicinePhoto(medicine);
+
+        if(photo == null) {
+            userStatusService.resetStatus(userId);
+            message.setText("Препарат......" + medicine.getName()
+                    + "\nДозировка..." + medicine.getDosage()
+                    + "\nКол-во..........." + medicine.getQuantity()
+                    + "\nГоден до........" + medicine.getTextExpDate());
+            return message;
+        }
+
+        message.setText("null");
+        photo.setChatId(updateService.getChatId(update));
+        photo.setCaption("Препарат......" + medicine.getName()
+                + "\nДозировка..." + medicine.getDosage()
+                + "\nКол-во..........." + medicine.getQuantity()
+                + "\nГоден до........" + medicine.getTextExpDate());
+        remedyBot.execute(photo);
+        userStatusService.resetStatus(userId);
+
+        log.info("<---- выход из getDetailsByNumber() ---->");
+        return message;
+    }
+
+    @Override
     public SendMessage deleteMedByNumber(Update update, Comparator<Medicine> comparator) {
         log.info("----> вход в deleteMedByNumber() <----");
         SendMessage message = new SendMessage();
@@ -305,12 +336,13 @@ public class MedicineServiceImpl implements MedicineService {
                             break;
                         case "SMT_BUTTON":
                             log.info("SMT_BUTTON");
-//                            newMed.setDosage(newMed.getDosage() + "");
+                            newMed.setDosage(newMed.getDosage() + " ед.");
                             break;
                     }
-                } else {
-                    newMed.setDosage(newMed.getDosage() + " мг.");
                 }
+//                else {
+//                    newMed.setDosage(newMed.getDosage() + " мг.");
+//                }
                 message.setText("Введите количество лекарства");
                 userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.QUANTITY).setMedicine(newMed));
                 log.info("Блок case DOSAGE_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
@@ -397,6 +429,7 @@ public class MedicineServiceImpl implements MedicineService {
         return message;
     }
 
+    @Override
     public Medicine getMedByNumber(Update update, Comparator<Medicine> comparator) {
         String textFromChat = updateService.getTextFromMessage(update);
         Medicine medicine;
@@ -411,6 +444,10 @@ public class MedicineServiceImpl implements MedicineService {
             }
         }
         return null;
+    }
+
+    private Medicine getMedById(Medicine medicine) {
+        return medicineRepository.getByNameAndDosageAndExpDate(medicine.getName(), medicine.getDosage(), medicine.getExpDate());
     }
 
     private String extractDataWithoutUnits(String withUnits) {
@@ -432,7 +469,7 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @SneakyThrows
-    public SendPhoto getMedicinePhoto(Medicine medicine) {
+    private SendPhoto getMedicinePhoto(Medicine medicine) {
         SendPhoto photo = null;
         java.io.File file = new java.io.File("./src/main/resources/photo/" + medicine.getName() + "_" + medicine.getDosage() + ".jpg");
         if (file.exists()) {
@@ -445,7 +482,7 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @SneakyThrows
-    public void setMedicinePhoto(Update update, Medicine medicine) {
+    private void setMedicinePhoto(Update update, Medicine medicine) {
         GetFile getFile = new GetFile();
         getFile.setFileId(update.getMessage().getPhoto().get(3).getFileId());
         File file = remedyBot.execute(getFile);

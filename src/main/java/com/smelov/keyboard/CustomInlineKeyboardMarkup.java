@@ -66,7 +66,7 @@ public class CustomInlineKeyboardMarkup {
         del_Button.setCallbackData("DEL_BUTTON");
         add_Button.setText("ДОБАВИТЬ");
         add_Button.setCallbackData("ADD_BUTTON");
-        detail_Button.setText("СМОТРЕТЬ ФОТО");
+        detail_Button.setText("ПОКАЗАТЬ ДЕТАЛИ");
         detail_Button.setCallbackData("DETAIL_BUTTON");
 
         buttonsRow1.add(cancel_Button);
@@ -109,7 +109,7 @@ public class CustomInlineKeyboardMarkup {
         mgButton.setCallbackData("MG_BUTTON");
         pcButton.setText("МИЛЛИЛИТРЫ");
         pcButton.setCallbackData("ML_BUTTON");
-        smtButton.setText("---");
+        smtButton.setText("ИНОЕ");
         smtButton.setCallbackData("SMT_BUTTON");
 
         buttonsRow1.add(mgButton);
@@ -129,7 +129,7 @@ public class CustomInlineKeyboardMarkup {
         InlineKeyboardButton pillsButton = new InlineKeyboardButton();
         InlineKeyboardButton percentButton = new InlineKeyboardButton();
 
-        pillsButton.setText("ТАБЛЕТКИ / ШТ");
+        pillsButton.setText("ШТ.");
         pillsButton.setCallbackData("PILLS_BUTTON");
         percentButton.setText("% ОТ ОБЩЕГО КОЛ-ВА");
         percentButton.setCallbackData("PERCENT_BUTTON");

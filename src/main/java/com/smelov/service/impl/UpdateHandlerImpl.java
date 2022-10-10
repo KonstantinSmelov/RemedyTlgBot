@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -44,6 +45,7 @@ public class UpdateHandlerImpl {
         message.setChatId(updateService.getChatId(update));
         message.setText("Простите, не понял в onUpdateReceived");
 
+
         //Обнуление статуса и выход в гл. меню из любого статуса
         if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/exit")) {
             log.info("Возвращаемся в гл. меню, обнуляем статус");
@@ -58,7 +60,7 @@ public class UpdateHandlerImpl {
         //Обработка текстовых команд верхнего уровня (гл. меню)
         if ((status != Status.NONE)) {
             message = currentStatusHandler(update, status);
-            if(!(message.getText().equals("null"))) {
+            if (!(message.getText().equals("null"))) {
                 remedyBot.execute(message);
             }
             log.info("<===== выход из onUpdateReceived() =====>\n");
@@ -165,20 +167,7 @@ public class UpdateHandlerImpl {
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
-                Medicine medicine = medicineService.getMedByNumber(update, currentStatus.getComparator());
-                if(medicine == null) {
-                    return SendMessage.builder().chatId(updateService.getChatId(update)).text(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", updateService.getTextFromMessage(update))).build();
-                }
-                SendPhoto photo = medicineService.getMedicinePhoto(medicine);
-                if(photo == null) {
-                    userStatusService.resetStatus(userId);
-                    return SendMessage.builder().chatId(updateService.getChatId(update)).text(String.format("Фото для [%s] не назначено!", medicine.getName() + " - " + medicine.getDosage())).build();
-                }
-                photo.setChatId(updateService.getChatId(update));
-                photo.setCaption(medicine.getName() + " - " + medicine.getDosage() + " - " + medicine.getQuantity() + " - " + medicine.getTextExpDate());
-                remedyBot.execute(photo);
-                userStatusService.resetStatus(userId);
-                return SendMessage.builder().chatId(updateService.getChatId(update)).text("null").build();
+                return medicineService.getDetailsByNumber(update, currentStatus.getComparator());
 
             default:
                 log.debug("Получили статус {}", currentStatus);
