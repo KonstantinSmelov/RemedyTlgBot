@@ -115,15 +115,21 @@ public class MedicineServiceImpl implements MedicineService {
 
                 case "EDIT_PHOTO_BUTTON":
                     log.info("EDIT_PHOTO_BUTTON");
-                    message.setReplyMarkup(new ReplyKeyboardRemove(true));
+                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                     SendPhoto photo = getMedicinePhoto(medicine);
                     if ((photo == null)) {
-                        message.setText(String.format("Фото для [%s] не назначено!", medicine.getName() + " - " + medicine.getDosage()));
-                        userStatusService.resetStatus(userId);
+                        message.setText(String.format("Фото для [%s] ранее не было назначено!\nСделайте фото:", medicine.getName() + " - " + medicine.getDosage()));
+                        userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_PHOTO).setMedicine(medicine));
                     } else {
-                        message.setText(String.format("Сделайте новое фото для [%s]", medicine.getName() + " - " + medicine.getDosage()));
+                        message.setText(String.format("Сделайте новое фото для [%s]:", medicine.getName() + " - " + medicine.getDosage()));
                         userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_PHOTO).setMedicine(medicine));
                     }
+                    return message;
+
+                case "CANCEL_BUTTON":
+                    log.info("CANCEL_BUTTON");
+                    userStatusService.resetStatus(userId);
+                    message.setText("Изменения фото отменено!");
                     return message;
             }
         }
@@ -145,10 +151,12 @@ public class MedicineServiceImpl implements MedicineService {
 
             case EDIT_NAME:
                 log.debug("editMedByNumber(), блок case EDIT_NAME");
+                Medicine currentMed1 = new Medicine(medicine);
                 medToEdit = new Medicine(medicine);
                 medToEdit.setName(textFromChat);
                 if (edit(medToEdit, medicine)) {
                     userStatusService.resetStatus(userId);
+                    renamePhotoFile(currentMed1, medToEdit);
                     message.setText("Название изменено");
                 } else {
                     message.setText("Название НЕ изменено");
@@ -157,9 +165,11 @@ public class MedicineServiceImpl implements MedicineService {
 
             case EDIT_DOSAGE:
                 log.debug("editMedByNumber(), блок case EDIT_DOSAGE");
+                Medicine currentMed2 = new Medicine(medicine);
                 medToEdit = new Medicine(medicine);
                 medToEdit.setDosage(textFromChat + medicine.getDosage().substring(medicine.getDosage().length() - 4));
                 if (edit(medToEdit, medicine)) {
+                    renamePhotoFile(currentMed2, medToEdit);
                     userStatusService.resetStatus(userId);
                     message.setText("Дозировка изменена");
                 } else {
@@ -224,14 +234,14 @@ public class MedicineServiceImpl implements MedicineService {
 
         message.setChatId(chatId);
 
-        if(medicine == null) {
+        if (medicine == null) {
             message.setText(String.format("В базе нет лекарства с порядковым номером [%s]\nВведите корректный номер:", textFromChat));
             return message;
         }
 
         SendPhoto photo = getMedicinePhoto(medicine);
 
-        if(photo == null) {
+        if (photo == null) {
             userStatusService.resetStatus(userId);
             message.setText("Препарат......" + medicine.getName()
                     + "\nДозировка..." + medicine.getDosage()
@@ -492,5 +502,10 @@ public class MedicineServiceImpl implements MedicineService {
     private void deleteMedicinePhoto(Medicine medicine) {
         java.io.File fileToDel = new java.io.File("./src/main/resources/photo/" + medicine.getName() + "_" + medicine.getDosage() + ".jpg");
         fileToDel.delete();
+    }
+
+    private void renamePhotoFile(Medicine medBefore, Medicine medAfter) {
+        java.io.File file = new java.io.File("./src/main/resources/photo/" + medBefore.getName() + "_" + medBefore.getDosage() + ".jpg");
+        file.renameTo(new java.io.File("./src/main/resources/photo/" + medAfter.getName() + "_" + medAfter.getDosage() + ".jpg"));
     }
 }
