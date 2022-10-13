@@ -5,7 +5,7 @@ import com.smelov.entity.Medicine;
 import java.util.Comparator;
 
 public enum Status {
-    NONE, ADD, DEL, EDIT, DETAIL, EXIT;
+    NONE, ADD, DEL, EDIT, DETAIL;
 
     private Medicine medicine;
     private EditStatus editStatus = EditStatus.NONE;

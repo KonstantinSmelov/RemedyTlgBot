@@ -50,18 +50,38 @@ public class CustomInlineKeyboardMarkup {
         return inlineKeyboardMarkup;
     }
 
+    public InlineKeyboardMarkup inlineKeyboardForDetailView() {
+        inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        rowList = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
+        InlineKeyboardButton edit_Button = new InlineKeyboardButton();
+        InlineKeyboardButton del_Button = new InlineKeyboardButton();
+
+        edit_Button.setText("ИЗМЕНИТЬ");
+        edit_Button.setCallbackData("EDIT_FROM_DETAIL_BUTTON");
+        del_Button.setText("УДАЛИТЬ");
+        del_Button.setCallbackData("DEL_FROM_DETAIL_BUTTON");
+
+        buttonsRow1.add(edit_Button);
+        buttonsRow1.add(del_Button);
+        rowList.add(buttonsRow1);
+        inlineKeyboardMarkup.setKeyboard(rowList);
+
+        return inlineKeyboardMarkup;
+    }
+
     public InlineKeyboardMarkup inlineKeyboardForAllMedsList() {
         inlineKeyboardMarkup = new InlineKeyboardMarkup();
         rowList = new ArrayList<>();
         List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
         List<InlineKeyboardButton> buttonsRow2 = new ArrayList<>();
-        InlineKeyboardButton cancel_Button = new InlineKeyboardButton();
+        InlineKeyboardButton edit_Button = new InlineKeyboardButton();
         InlineKeyboardButton del_Button = new InlineKeyboardButton();
         InlineKeyboardButton add_Button = new InlineKeyboardButton();
         InlineKeyboardButton detail_Button = new InlineKeyboardButton();
 
-        cancel_Button.setText("ИЗМЕНИТЬ");
-        cancel_Button.setCallbackData("EDIT_BUTTON");
+        edit_Button.setText("ИЗМЕНИТЬ");
+        edit_Button.setCallbackData("EDIT_BUTTON");
         del_Button.setText("УДАЛИТЬ");
         del_Button.setCallbackData("DEL_BUTTON");
         add_Button.setText("ДОБАВИТЬ");
@@ -69,7 +89,7 @@ public class CustomInlineKeyboardMarkup {
         detail_Button.setText("ПОКАЗАТЬ ДЕТАЛИ");
         detail_Button.setCallbackData("DETAIL_BUTTON");
 
-        buttonsRow1.add(cancel_Button);
+        buttonsRow1.add(edit_Button);
         buttonsRow1.add(del_Button);
         buttonsRow2.add(add_Button);
         buttonsRow2.add(detail_Button);

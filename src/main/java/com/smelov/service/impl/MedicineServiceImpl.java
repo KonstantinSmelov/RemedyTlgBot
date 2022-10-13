@@ -79,14 +79,6 @@ public class MedicineServiceImpl implements MedicineService {
         Medicine medicine = status.getMedicine();
         Medicine medToEdit;
 
-        if (update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("CANCEL_BUTTON")) {
-            log.debug("CANCEL_BUTTON");
-            message.setText("Отмена редактирования. Выход в главное меню");
-            message.setReplyMarkup(new ReplyKeyboardRemove(true));
-            userStatusService.resetStatus(userId);
-            return message;
-        }
-
         if (update.hasCallbackQuery()) {
             switch (update.getCallbackQuery().getData()) {
                 case "EDIT_NAME_BUTTON":
@@ -231,13 +223,12 @@ public class MedicineServiceImpl implements MedicineService {
 
     @Override
     @SneakyThrows
-    public SendMessage getDetailsByNumber(Update update, Comparator<Medicine> comparator) {
+    public SendMessage getDetailsByNumber(Update update, Status status) {
         log.info("----> вход в getDetailsByNumber() <----");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
         Long chatId = updateService.getChatId(update);
         String textFromChat = updateService.getTextFromMessage(update);
-        Status status = userStatusService.getCurrentStatus(userId);
         Medicine medicine = getMedByNumber(update, status.getComparator());
 
         message.setChatId(chatId);
@@ -251,10 +242,12 @@ public class MedicineServiceImpl implements MedicineService {
 
         if (photo == null) {
             userStatusService.resetStatus(userId);
+            userStatusService.setCurrentStatus(userId, Status.NONE.setMedicine(medicine));
             message.setText("Препарат..... " + medicine.getName()
                     + "\nДозировка.. " + medicine.getDosage()
                     + "\nКол-во.......... " + medicine.getQuantity()
                     + "\nГоден до....... " + medicine.getTextExpDate());
+            message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDetailView());
             return message;
         }
 
@@ -272,24 +265,18 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
-    public SendMessage deleteMedByNumber(Update update, Comparator<Medicine> comparator) {
+    public SendMessage deleteMedByNumber(Update update, Status status) {
         log.info("----> вход в deleteMedByNumber() <----");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
         String textFromChat = updateService.getTextFromMessage(update);
-        Medicine medicine;
+        Medicine medicine = status.getMedicine();
 
         message.setChatId(updateService.getChatId(update));
 
-        if (update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("CANCEL_BUTTON")) {
-            log.debug("CANCEL_BUTTON");
-            message.setText("Отмена удаления. Выход в главное меню");
-            message.setReplyMarkup(new ReplyKeyboardRemove(true));
-            userStatusService.resetStatus(userId);
-            return message;
+        if(medicine == null) {
+            medicine = getMedByNumber(update, status.getComparator());
         }
-
-        medicine = getMedByNumber(update, comparator);
 
         if (medicine != null) {
             log.debug("deleteMedByNumber(): Нашли лекарство {}", medicine);
@@ -319,14 +306,6 @@ public class MedicineServiceImpl implements MedicineService {
 
         message.setChatId(updateService.getChatId(update));
         message.setText("Простите, не понял, начните с начала (в addMedicine)");
-
-        if (update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("CANCEL_BUTTON")) {
-            log.debug("CANCEL_BUTTON");
-            message.setText("Отмена добавления. Выход в главное меню");
-            message.setReplyMarkup(new ReplyKeyboardRemove(true));
-            userStatusService.resetStatus(userId);
-            return message;
-        }
 
         switch (status.getAddStatus()) {
             case NAME:

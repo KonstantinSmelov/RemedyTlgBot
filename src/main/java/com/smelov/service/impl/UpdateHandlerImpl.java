@@ -42,7 +42,9 @@ public class UpdateHandlerImpl {
 
 
         //Обнуление статуса и выход в гл. меню из любого статуса
-        if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/exit")) {
+        if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/exit")
+                ||
+                update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("CANCEL_BUTTON")) {
             log.info("Возвращаемся в гл. меню, обнуляем статус");
             userStatusService.resetStatus(userId);
             message.setReplyMarkup(new ReplyKeyboardRemove(true));
@@ -54,7 +56,7 @@ public class UpdateHandlerImpl {
         }
 
         //Обработка текстовых команд верхнего уровня (гл. меню)
-        if ((status != Status.NONE)) {
+        if (status != Status.NONE) {
             message = currentStatusHandler(update, status);
             if (!(message.getText().equals("null"))) {
                 remedyBot.execute(message);
@@ -80,8 +82,8 @@ public class UpdateHandlerImpl {
         message.setChatId(update.getMessage().getChatId());
         switch (update.getMessage().getText()) {
             case "/by_name":
-                userStatusService.setCurrentStatus(userId, Status.NONE.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator((o1, o2) -> o1.getName().compareTo(o2.getName())).setMedicine(new Medicine()));
-                message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
+//                userStatusService.setCurrentStatus(userId, Status.NONE.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator((o1, o2) -> o1.getName().compareTo(o2.getName())).setMedicine(new Medicine()));
+                message.setText(textMessageService.nameList(medicineService.getAllMeds((o1, o2) -> o1.getName().compareTo(o2.getName()))));
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                 break;
 
@@ -133,7 +135,10 @@ public class UpdateHandlerImpl {
             case "DETAIL_BUTTON":
                 log.info("DETAIL_BUTTON");
                 message.setText("Введите порядковый номер лекарства для показа деталей:");
-                userStatusService.setCurrentStatus(userId, Status.DETAIL.setAddStatus(AddStatus.NAME).setEditStatus(EditStatus.NONE).setComparator(status.getComparator()).setMedicine(new Medicine()));
+                userStatusService.setCurrentStatus(userId, Status.DETAIL.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator(status.getComparator()).setMedicine(new Medicine()));
+                break;
+            case "EDIT_FROM_DETAIL_BUTTON":
+                log.info("EDIT_FROM_DETAIL_BUTTON");
                 break;
         }
         log.info("<---- выход из callbackQueryHandler() ---->");
@@ -150,7 +155,7 @@ public class UpdateHandlerImpl {
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
-                return medicineService.deleteMedByNumber(update, userStatusService.getCurrentStatus(userId).getComparator());
+                return medicineService.deleteMedByNumber(update, userStatusService.getCurrentStatus(userId));
 
             case EDIT:
                 log.debug("Получили статус {}", currentStatus);
@@ -168,7 +173,7 @@ public class UpdateHandlerImpl {
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
-                return medicineService.getDetailsByNumber(update, currentStatus.getComparator());
+                return medicineService.getDetailsByNumber(update, userStatusService.getCurrentStatus(userId));
 
             default:
                 log.debug("Получили статус {}", currentStatus);
