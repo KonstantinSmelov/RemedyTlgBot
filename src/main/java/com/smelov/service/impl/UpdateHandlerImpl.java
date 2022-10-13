@@ -10,19 +10,14 @@ import com.smelov.service.MedicineService;
 import com.smelov.service.TextMessageService;
 import com.smelov.service.UpdateService;
 import com.smelov.service.UserStatusService;
+import com.vdurmont.emoji.EmojiParser;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.File;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Service
 @Slf4j
@@ -51,7 +46,8 @@ public class UpdateHandlerImpl {
             log.info("Возвращаемся в гл. меню, обнуляем статус");
             userStatusService.resetStatus(userId);
             message.setReplyMarkup(new ReplyKeyboardRemove(true));
-            message.setText("Вышли в главное меню");
+            message.setText(EmojiParser.parseToUnicode("Вышли в начальное состояние.\nНажмите кнопку меню\n" +
+                    "   :arrow_down:"));
             remedyBot.execute(message);
             log.info("<===== выход из onUpdateReceived() =====>\n");
             return;
@@ -85,18 +81,20 @@ public class UpdateHandlerImpl {
         switch (update.getMessage().getText()) {
             case "/by_name":
                 userStatusService.setCurrentStatus(userId, Status.NONE.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator((o1, o2) -> o1.getName().compareTo(o2.getName())).setMedicine(new Medicine()));
-                message.setText(textMessageService.allInfoList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
+                message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                 break;
 
-            case "/by_exp_date":
-                userStatusService.setCurrentStatus(userId, Status.NONE.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator((o1, o2) -> o1.getExpDate().compareTo(o2.getExpDate())).setMedicine(new Medicine()));
-                message.setText(textMessageService.allInfoList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
-                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
-                break;
+//            case "/by_exp_date":
+//                userStatusService.setCurrentStatus(userId, Status.NONE.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator((o1, o2) -> o1.getExpDate().compareTo(o2.getExpDate())).setMedicine(new Medicine()));
+//                message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
+//                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
+//                break;
 
             case "/start":
-                message.setText("Добро пожаловать!\n\nЯ бот, который поможет в учёте лекарств в вашей домашней аптечке");
+                message.setText(EmojiParser.parseToUnicode("Добро пожаловать!\n\nЯ бот, который поможет в учёте лекарств в вашей домашней аптечке.\n\n" +
+                        "Нажмите кнопку меню\n" +
+                        "   :arrow_down:"));
                 break;
 
             default:
@@ -117,16 +115,19 @@ public class UpdateHandlerImpl {
             case "DEL_BUTTON":
                 log.info("DEL_BUTTON");
                 message.setText("Введите порядковый номер лекарства для удаления:");
+                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                 userStatusService.setCurrentStatus(userId, Status.DEL.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator(status.getComparator()).setMedicine(new Medicine()));
                 break;
             case "EDIT_BUTTON":
                 log.info("EDIT_BUTTON");
                 message.setText("Введите порядковый номер лекарства для редактирования:");
+                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                 userStatusService.setCurrentStatus(userId, Status.EDIT.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator(status.getComparator()).setMedicine(new Medicine()));
                 break;
             case "ADD_BUTTON":
                 log.info("ADD_BUTTON");
                 message.setText("Введите название лекарства, которое вы хотите добавить:");
+                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                 userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.NAME).setEditStatus(EditStatus.NONE).setComparator(status.getComparator()).setMedicine(new Medicine()));
                 break;
             case "DETAIL_BUTTON":

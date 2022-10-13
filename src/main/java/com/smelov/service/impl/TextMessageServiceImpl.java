@@ -14,8 +14,31 @@ import java.util.List;
 public class TextMessageServiceImpl implements TextMessageService {
 
     @Override
+    public String nameList(List<Medicine> meds) {
+        log.info("----> вход в nameList() <----");
+        StringBuilder string = new StringBuilder();
+        int x = 1;
+
+        for (Medicine med : meds) {
+            string
+                    .append(x++)
+                    .append(" - ")
+                    .append(med.getName())
+                    .append("\n");
+        }
+
+        if(string.length() == 0) {
+            string.append("ПУСТО");
+            log.info("<---- выход из nameList() ---->");
+            return string.toString();
+        }
+        log.info("<---- выход из nameList() ---->");
+        return string.toString();
+    }
+
+    @Override
     public String nameAndDosageList(List<Medicine> meds) {
-        log.info("----> вход в nameAndDosageListSortedByLastAction() <----");
+        log.info("----> вход в nameAndDosageList() <----");
         StringBuilder string = new StringBuilder();
         int x = 1;
 
@@ -31,10 +54,10 @@ public class TextMessageServiceImpl implements TextMessageService {
 
         if(string.length() == 0) {
             string.append("ПУСТО");
-            log.info("<---- выход из nameAndDosageListSortedByLastAction() ---->");
+            log.info("<---- выход из nameAndDosageList() ---->");
             return string.toString();
         }
-        log.info("<---- выход из nameAndDosageListSortedByLastAction() ---->");
+        log.info("<---- выход из nameAndDosageList() ---->");
         return string.toString();
     }
 

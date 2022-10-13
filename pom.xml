@@ -15,7 +15,9 @@
     <description>RemedyBot</description>
     <properties>
         <java.version>11</java.version>
-        <liquibase.version>4.14.0</liquibase.version>
+        <tlg.version>6.1.0</tlg.version>
+        <liquibase.version>4.16.1</liquibase.version>
+        <emoji.version>5.1.1</emoji.version>
     </properties>
     <dependencies>
         <dependency>
@@ -45,12 +47,17 @@
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-spring-boot-starter</artifactId>
-            <version>6.1.0</version>
+            <version>${tlg.version}</version>
         </dependency>
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
             <version>${liquibase.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vdurmont</groupId>
+            <artifactId>emoji-java</artifactId>
+            <version>${emoji.version}</version>
         </dependency>
     </dependencies>
 

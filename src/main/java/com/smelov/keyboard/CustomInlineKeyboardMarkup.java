@@ -80,6 +80,22 @@ public class CustomInlineKeyboardMarkup {
         return inlineKeyboardMarkup;
     }
 
+    public InlineKeyboardMarkup inlineKeyboardForSkip() {
+        inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        rowList = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
+        InlineKeyboardButton skip_Button = new InlineKeyboardButton();
+
+        skip_Button.setText("ПРОПУСТИТЬ ЭТОТ ШАГ");
+        skip_Button.setCallbackData("SKIP_BUTTON");
+
+        buttonsRow1.add(skip_Button);
+        rowList.add(buttonsRow1);
+        inlineKeyboardMarkup.setKeyboard(rowList);
+
+        return inlineKeyboardMarkup;
+    }
+
     public InlineKeyboardMarkup inlineKeyboardForCancel() {
         inlineKeyboardMarkup = new InlineKeyboardMarkup();
         rowList = new ArrayList<>();
