@@ -34,12 +34,14 @@ public class UpdateHandlerImpl {
     @SneakyThrows
     public void onUpdateReceived(Update update) {
         log.info("=====> вход в onUpdateReceived() <=====");
+
+        System.out.println(userStatusService.getStatusMap());
+
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
         Status status = userStatusService.getCurrentStatus(userId);
         message.setChatId(updateService.getChatId(update));
         message.setText("Простите, не понял в onUpdateReceived");
-
 
         //Обнуление статуса и выход в гл. меню из любого статуса
         if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/exit")
@@ -58,9 +60,7 @@ public class UpdateHandlerImpl {
         //Обработка текстовых команд верхнего уровня (гл. меню)
         if (status != Status.NONE) {
             message = currentStatusHandler(update, status);
-            if (!(message.getText().equals("null"))) {
-                remedyBot.execute(message);
-            }
+            remedyBot.execute(message);
             log.info("<===== выход из onUpdateReceived() =====>\n");
         } else if (update.hasCallbackQuery()) {
             message = callbackQueryHandler(update, userId);
@@ -82,8 +82,8 @@ public class UpdateHandlerImpl {
         message.setChatId(update.getMessage().getChatId());
         switch (update.getMessage().getText()) {
             case "/by_name":
-//                userStatusService.setCurrentStatus(userId, Status.NONE.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator((o1, o2) -> o1.getName().compareTo(o2.getName())).setMedicine(new Medicine()));
-                message.setText(textMessageService.nameList(medicineService.getAllMeds((o1, o2) -> o1.getName().compareTo(o2.getName()))));
+                userStatusService.setCurrentStatus(userId, Status.NONE.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator((o1, o2) -> o1.getName().compareTo(o2.getName())).setMedicine(new Medicine()));
+                message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                 break;
 
@@ -137,8 +137,12 @@ public class UpdateHandlerImpl {
                 message.setText("Введите порядковый номер лекарства для показа деталей:");
                 userStatusService.setCurrentStatus(userId, Status.DETAIL.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator(status.getComparator()).setMedicine(new Medicine()));
                 break;
-            case "EDIT_FROM_DETAIL_BUTTON":
-                log.info("EDIT_FROM_DETAIL_BUTTON");
+            case "DEL_FROM_DETAIL_BUTTON":
+                log.info("DEL_FROM_DETAIL_BUTTON");
+                message.setText("Пробуем удалить");
+                System.out.println(userStatusService.getStatusMap());
+                medicineService.deleteMedByNumber(userStatusService.getCurrentStatus(userId).getMedicine());
+                userStatusService.resetStatus(userId);
                 break;
         }
         log.info("<---- выход из callbackQueryHandler() ---->");
@@ -148,38 +152,42 @@ public class UpdateHandlerImpl {
     @SneakyThrows
     private SendMessage currentStatusHandler(Update update, Status currentStatus) {
         log.info("----> вход в currentStatusHandler() <----");
+        SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
 
         switch (currentStatus) {
             case DEL:
                 log.debug("Получили статус {}", currentStatus);
+                message = medicineService.deleteMedByNumber(update, userStatusService.getCurrentStatus(userId));
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
-                return medicineService.deleteMedByNumber(update, userStatusService.getCurrentStatus(userId));
+                return message;
 
             case EDIT:
                 log.debug("Получили статус {}", currentStatus);
+                message = medicineService.editMedByNumber(update, userStatusService.getCurrentStatus(userId));
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
-                return medicineService.editMedByNumber(update, userStatusService.getCurrentStatus(userId).getComparator());
+                return message;
 
             case ADD:
                 log.debug("Получили статус {}", currentStatus);
+                message = medicineService.addMedicine(update);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
-                return medicineService.addMedicine(update);
+                return message;
 
             case DETAIL:
                 log.debug("Получили статус {}", currentStatus);
+                message = medicineService.getDetailsByNumber(update, userStatusService.getCurrentStatus(userId));
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
-                return medicineService.getDetailsByNumber(update, userStatusService.getCurrentStatus(userId));
+                return message;
 
             default:
                 log.debug("Получили статус {}", currentStatus);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
-                SendMessage message = new SendMessage();
                 message.setChatId(updateService.getChatId(update));
                 message.setText("Простите, не понял в currentStatusHandler");
                 return message;

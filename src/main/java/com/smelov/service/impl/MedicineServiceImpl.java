@@ -69,13 +69,13 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
-    public SendMessage editMedByNumber(Update update, Comparator<Medicine> comparator) {
+    public SendMessage editMedByNumber(Update update, Status status) {
         log.info("----> вход в editMedByNumber() <----");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
         message.setChatId(updateService.getChatId(update));
         String textFromChat = updateService.getTextFromMessage(update);
-        Status status = userStatusService.getCurrentStatus(userId);
+//        Status status = userStatusService.getCurrentStatus(userId);
         Medicine medicine = status.getMedicine();
         Medicine medToEdit;
 
@@ -137,7 +137,7 @@ public class MedicineServiceImpl implements MedicineService {
         switch (status.getEditStatus()) {
             case NONE:
                 log.debug("editMedByNumber(), блок case NONE");
-                medicine = getMedByNumber(update, comparator);
+                medicine = getMedByNumber(update, status.getComparator());
                 if (medicine != null) {
                     status.setMedicine(medicine);
                     message.setText("Выбрано лекарство:\n" + textFromChat + " - " + medicine.getName() +
@@ -240,25 +240,19 @@ public class MedicineServiceImpl implements MedicineService {
 
         SendPhoto photo = getMedicinePhoto(medicine);
 
-        if (photo == null) {
-            userStatusService.resetStatus(userId);
-            userStatusService.setCurrentStatus(userId, Status.NONE.setMedicine(medicine));
-            message.setText("Препарат..... " + medicine.getName()
-                    + "\nДозировка.. " + medicine.getDosage()
-                    + "\nКол-во.......... " + medicine.getQuantity()
-                    + "\nГоден до....... " + medicine.getTextExpDate());
-            message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDetailView());
-            return message;
+        if (photo != null) {
+            photo.setChatId(updateService.getChatId(update));
+            remedyBot.execute(photo);
         }
 
-        message.setText("null");
-        photo.setChatId(updateService.getChatId(update));
-        photo.setCaption("Препарат..... " + medicine.getName()
+        message.setText("Препарат..... " + medicine.getName()
                 + "\nДозировка.. " + medicine.getDosage()
                 + "\nКол-во.......... " + medicine.getQuantity()
                 + "\nГоден до....... " + medicine.getTextExpDate());
-        remedyBot.execute(photo);
+        message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDetailView());
+
         userStatusService.resetStatus(userId);
+        userStatusService.setCurrentStatus(userId, Status.NONE.setEditStatus(EditStatus.NONE).setAddStatus(AddStatus.NONE).setMedicine(medicine));
 
         log.info("<---- выход из getDetailsByNumber() ---->");
         return message;
@@ -274,7 +268,7 @@ public class MedicineServiceImpl implements MedicineService {
 
         message.setChatId(updateService.getChatId(update));
 
-        if(medicine == null) {
+        if (medicine == null) {
             medicine = getMedByNumber(update, status.getComparator());
         }
 
@@ -292,6 +286,21 @@ public class MedicineServiceImpl implements MedicineService {
 
         log.info("<---- выход из deleteMedByNumber() ---->");
         return message;
+    }
+
+    @Override
+    public SendMessage deleteMedByNumber(Medicine medicine) {
+        log.info("----> вход в deleteMedByNumber() <----");
+        SendMessage message = new SendMessage();
+
+        medicineRepository.deleteByNameAndDosageAndExpDate(medicine.getName(), medicine.getDosage(), medicine.getExpDate());
+        deleteMedicinePhoto(medicine);
+        message.setText("Вы удалили лекарство:\n" + medicine.getName() + " - " + medicine.getDosage() + " - " + medicine.getQuantity() + " - " + medicine.getExpDate());
+        message.setReplyMarkup(new ReplyKeyboardRemove(true));
+
+        log.info("<---- выход из deleteMedByNumber() ---->");
+        return message;
+
     }
 
     @Override
