@@ -13,8 +13,8 @@ public interface MedicineService {
     boolean edit(Medicine medToEdit, Medicine storedMed);
     SendMessage addMedicine(Update update);
     SendMessage deleteMedByNumber(Update update, Status status);
-    SendMessage deleteMedByNumber(Medicine medicine);
     SendMessage editMedByNumber(Update update, Status status);
     SendMessage getDetailsByNumber(Update update, Status status);
+    SendMessage getDetailsByMedicine(Update update, Medicine medicine);
     Medicine getMedByNumber(Update update, Comparator<Medicine> comparator);
 }

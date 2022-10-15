@@ -16,9 +16,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Service
 @Slf4j
@@ -64,8 +67,8 @@ public class UpdateReceivedHandler {
             remedyBot.execute(message);
             log.info("<===== выход из onUpdateReceived() =====>\n");
         } else if (update.hasCallbackQuery()) {
-            message = callbackQueryHandler(update, status);
-            remedyBot.execute(message);
+            BotApiMethod<?> message2 = callbackQueryHandler(update, status);
+            remedyBot.execute(message2);
             log.info("<===== выход из onUpdateReceived() =====>\n");
         } else {
             message = messageTextHandler(update, status);
@@ -95,12 +98,6 @@ public class UpdateReceivedHandler {
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                 break;
 
-//            case "/by_exp_date":
-//                userStatusService.setCurrentStatus(userId, Status.NONE.setAddStatus(AddStatus.NONE).setEditStatus(EditStatus.NONE).setComparator((o1, o2) -> o1.getExpDate().compareTo(o2.getExpDate())).setMedicine(new Medicine()));
-//                message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
-//                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
-//                break;
-
             case "/start":
                 message.setText(EmojiParser.parseToUnicode("Добро пожаловать!\n\nЯ бот, который поможет в учёте лекарств в вашей домашней аптечке.\n\n" +
                         "Нажмите кнопку меню\n" +
@@ -115,7 +112,7 @@ public class UpdateReceivedHandler {
         return message;
     }
 
-    private SendMessage callbackQueryHandler(Update update, Status status) {
+    private BotApiMethod<?> callbackQueryHandler(Update update, Status status) {
         log.info("----> вход в callbackQueryHandler() <----");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
@@ -151,7 +148,7 @@ public class UpdateReceivedHandler {
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                 userStatusService.setCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.ADD)
-                        .addStatus(AddStatus.NONE)
+                        .addStatus(AddStatus.NAME)
                         .editStatus(EditStatus.NONE)
                         .comparator(status.getComparator())
                         .build());
@@ -168,11 +165,28 @@ public class UpdateReceivedHandler {
                 break;
             case "DEL_FROM_DETAIL_BUTTON":
                 log.info("DEL_FROM_DETAIL_BUTTON");
-                message.setText("Пробуем удалить");
-                System.out.println(userStatusService.getStatusMap());
-                medicineService.deleteMedByNumber(userStatusService.getCurrentStatus(userId).getMedicine());
-                userStatusService.resetStatus(userId);
+                message = medicineService.deleteMedByNumber(update, status);
                 break;
+            case "EDIT_FROM_DETAIL_BUTTON":
+                log.info("EDIT_FROM_DETAIL_BUTTON");
+                Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
+                Long chatId = updateService.getChatId(update);
+                EditMessageText editedMessage = new EditMessageText();
+
+                message = medicineService.getDetailsByMedicine(update, status.getMedicine());
+
+                editedMessage.setChatId(chatId);
+                editedMessage.setText(message.getText());
+                editedMessage.setMessageId(messageId);
+                editedMessage.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
+                userStatusService.setCurrentStatus(userId, Status.builder()
+                        .mainStatus(MainStatus.EDIT)
+                        .addStatus(AddStatus.NONE)
+                        .editStatus(EditStatus.NONE)
+                        .medicine(status.getMedicine())
+                        .build());
+                return editedMessage;
+
         }
         log.info("<---- выход из callbackQueryHandler() ---->");
         return message;

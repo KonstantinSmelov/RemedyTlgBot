@@ -296,24 +296,65 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
+    @SneakyThrows
+    public SendMessage getDetailsByMedicine(Update update, Medicine medicine) {
+        SendMessage message = new SendMessage();
+        Long userId = updateService.getUserId(update);
+        Long chatId = updateService.getChatId(update);
+        message.setChatId(chatId);
+
+        if (medicine == null) {
+            message.setText("В базе нет такого лекарства");
+            return message;
+        }
+
+        SendPhoto photo = getMedicinePhoto(medicine);
+
+        if (photo != null) {
+            photo.setChatId(updateService.getChatId(update));
+            remedyBot.execute(photo);
+        }
+
+        message.setText("Препарат..... " + medicine.getName()
+                + "\nДозировка.. " + medicine.getDosage()
+                + "\nКол-во.......... " + medicine.getQuantity()
+                + "\nГоден до....... " + medicine.getTextExpDate());
+        message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDetailView());
+
+        userStatusService.resetStatus(userId);
+        userStatusService.setCurrentStatus(userId, Status.builder()
+                .mainStatus(MainStatus.NONE)
+                .addStatus(AddStatus.NONE)
+                .editStatus(EditStatus.NONE)
+                .medicine(medicine)
+                .build());
+//        userStatusService.setCurrentStatus(userId, Status.NONE.setEditStatus(EditStatus.NONE).setAddStatus(AddStatus.NONE).setMedicine(medicine));
+
+        log.info("<---- выход из getDetailsByNumber() ---->");
+        return message;
+    }
+
+    @Override
     public SendMessage deleteMedByNumber(Update update, Status status) {
         log.info("----> вход в deleteMedByNumber() <----");
         SendMessage message = new SendMessage();
+        message.setChatId(updateService.getChatId(update));
         Long userId = updateService.getUserId(update);
         String textFromChat = updateService.getTextFromMessage(update);
-        Medicine medicine = status.getMedicine();
 
-        message.setChatId(updateService.getChatId(update));
+        Medicine medicine;
 
-        if (medicine == null) {
+        if(status.getMedicine() == null) {
             medicine = getMedByNumber(update, status.getComparator());
+        } else {
+            medicine = status.getMedicine();
         }
 
         if (medicine != null) {
             log.debug("deleteMedByNumber(): Нашли лекарство {}", medicine);
             medicineRepository.deleteByNameAndDosageAndExpDate(medicine.getName(), medicine.getDosage(), medicine.getExpDate());
             deleteMedicinePhoto(medicine);
-            message.setText("Вы удалили лекарство:\n" + textFromChat + " - " + medicine.getName() + " - " + medicine.getDosage() + " - " + medicine.getQuantity() + " - " + medicine.getExpDate());
+            message.setText("Вы удалили лекарство:\n" + medicine.getName() + " - " + medicine.getDosage() + " - " + medicine.getQuantity() + " - " + medicine.getExpDate());
             userStatusService.resetStatus(userId);
             message.setReplyMarkup(new ReplyKeyboardRemove(true));
         } else {
@@ -323,21 +364,6 @@ public class MedicineServiceImpl implements MedicineService {
 
         log.info("<---- выход из deleteMedByNumber() ---->");
         return message;
-    }
-
-    @Override
-    public SendMessage deleteMedByNumber(Medicine medicine) {
-        log.info("----> вход в deleteMedByNumber() <----");
-        SendMessage message = new SendMessage();
-
-        medicineRepository.deleteByNameAndDosageAndExpDate(medicine.getName(), medicine.getDosage(), medicine.getExpDate());
-        deleteMedicinePhoto(medicine);
-        message.setText("Вы удалили лекарство:\n" + medicine.getName() + " - " + medicine.getDosage() + " - " + medicine.getQuantity() + " - " + medicine.getExpDate());
-        message.setReplyMarkup(new ReplyKeyboardRemove(true));
-
-        log.info("<---- выход из deleteMedByNumber() ---->");
-        return message;
-
     }
 
     @Override
