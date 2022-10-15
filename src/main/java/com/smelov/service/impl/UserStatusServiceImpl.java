@@ -3,6 +3,7 @@ package com.smelov.service.impl;
 import com.smelov.entity.Medicine;
 import com.smelov.model.AddStatus;
 import com.smelov.model.EditStatus;
+import com.smelov.model.MainStatus;
 import com.smelov.model.Status;
 import com.smelov.service.UserStatusService;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +28,13 @@ public class UserStatusServiceImpl implements UserStatusService {
     public Status getCurrentStatus(Long userId) {
         log.info("----> вход в getCurrentStatus() <----");
         System.out.println("getCurrentStatus(): " + userStatusMap);
-        Status status = Status.NONE.setEditStatus(EditStatus.NONE).setAddStatus(AddStatus.NONE).setMedicine(new Medicine());
-        if(userStatusMap.containsKey(userId)) {
+        Status status = Status.builder()
+                .mainStatus(MainStatus.NONE)
+                .addStatus(AddStatus.NONE)
+                .editStatus(EditStatus.NONE)
+                .medicine(new Medicine())
+                .build();
+        if (userStatusMap.containsKey(userId)) {
             status = userStatusMap.get(userId);
         }
         log.info("status: {}", status);
@@ -49,7 +55,12 @@ public class UserStatusServiceImpl implements UserStatusService {
         log.info("----> вход в resetStatus() <----");
         Status status = userStatusMap.get(userId);
         log.info("status на входе для userId {}: {}", userId, status);
-        status = Status.NONE.setEditStatus(EditStatus.NONE).setAddStatus(AddStatus.NONE).setMedicine(new Medicine());
+        status = Status.builder()
+                .mainStatus(MainStatus.NONE)
+                .addStatus(AddStatus.NONE)
+                .editStatus(EditStatus.NONE)
+                .medicine(new Medicine())
+                .build();
         userStatusMap.put(userId, status);
         log.info("status на выходе для userId {}: {}", userId, status);
         log.info("<---- выход из resetStatus() ---->");
