@@ -1,7 +1,6 @@
-package com.smelov.service.impl;
+package com.smelov.handler;
 
 import com.smelov.bot.RemedyBot;
-import com.smelov.entity.Medicine;
 import com.smelov.keyboard.CustomInlineKeyboardMarkup;
 import com.smelov.model.AddStatus;
 import com.smelov.model.EditStatus;
@@ -21,7 +20,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Service
 @Slf4j
@@ -131,6 +129,7 @@ public class UpdateReceivedHandler {
                         .comparator(status.getComparator())
                         .build());
                 break;
+
             case "EDIT_BUTTON":
                 log.info("EDIT_BUTTON");
                 message.setText("Введите порядковый номер лекарства для редактирования:");
@@ -142,6 +141,7 @@ public class UpdateReceivedHandler {
                         .comparator(status.getComparator())
                         .build());
                 break;
+
             case "ADD_BUTTON":
                 log.info("ADD_BUTTON");
                 message.setText("Введите название лекарства, которое вы хотите добавить:");
@@ -153,6 +153,7 @@ public class UpdateReceivedHandler {
                         .comparator(status.getComparator())
                         .build());
                 break;
+
             case "DETAIL_BUTTON":
                 log.info("DETAIL_BUTTON");
                 message.setText("Введите порядковый номер лекарства для показа деталей:");
@@ -163,17 +164,19 @@ public class UpdateReceivedHandler {
                         .comparator(status.getComparator())
                         .build());
                 break;
+
             case "DEL_FROM_DETAIL_BUTTON":
                 log.info("DEL_FROM_DETAIL_BUTTON");
-                message = medicineService.deleteMedByNumber(update, status);
+                message = medicineService.deleteMedByNumber(update);
                 break;
+
             case "EDIT_FROM_DETAIL_BUTTON":
                 log.info("EDIT_FROM_DETAIL_BUTTON");
                 Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
                 Long chatId = updateService.getChatId(update);
                 EditMessageText editedMessage = new EditMessageText();
 
-                message = medicineService.getDetailsByMedicine(update, status.getMedicine());
+                message = medicineService.getMedDetails(update);
 
                 editedMessage.setChatId(chatId);
                 editedMessage.setText(message.getText());
@@ -186,7 +189,6 @@ public class UpdateReceivedHandler {
                         .medicine(status.getMedicine())
                         .build());
                 return editedMessage;
-
         }
         log.info("<---- выход из callbackQueryHandler() ---->");
         return message;
@@ -196,19 +198,18 @@ public class UpdateReceivedHandler {
     private SendMessage currentStatusHandler(Update update, Status status) {
         log.info("----> вход в currentStatusHandler() <----");
         SendMessage message = new SendMessage();
-        Long userId = updateService.getUserId(update);
 
         switch (status.getMainStatus()) {
             case DEL:
                 log.debug("Получили статус {}", status);
-                message = medicineService.deleteMedByNumber(update, userStatusService.getCurrentStatus(userId));
+                message = medicineService.deleteMedByNumber(update);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
                 return message;
 
             case EDIT:
                 log.debug("Получили статус {}", status);
-                message = medicineService.editMedByNumber(update, userStatusService.getCurrentStatus(userId));
+                message = medicineService.editMedByNumber(update);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
                 return message;
@@ -222,7 +223,7 @@ public class UpdateReceivedHandler {
 
             case DETAIL:
                 log.debug("Получили статус {}", status);
-                message = medicineService.getDetailsByNumber(update, userStatusService.getCurrentStatus(userId));
+                message = medicineService.getMedDetails(update);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
                 return message;

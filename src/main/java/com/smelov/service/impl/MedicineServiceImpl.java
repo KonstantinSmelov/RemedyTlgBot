@@ -70,13 +70,13 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
-    public SendMessage editMedByNumber(Update update, Status status) {
+    public SendMessage editMedByNumber(Update update) {
         log.info("----> вход в editMedByNumber() <----");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
         message.setChatId(updateService.getChatId(update));
         String textFromChat = updateService.getTextFromMessage(update);
-//        Status status = userStatusService.getCurrentStatus(userId);
+        Status status = userStatusService.getCurrentStatus(userId);
         Medicine medicine = status.getMedicine();
         Medicine medToEdit;
 
@@ -168,7 +168,7 @@ public class MedicineServiceImpl implements MedicineService {
         switch (status.getEditStatus()) {
             case NONE:
                 log.debug("editMedByNumber(), блок case NONE");
-                medicine = getMedByNumber(update, status.getComparator());
+                medicine = getMedByNumber(textFromChat, status.getComparator());
                 if (medicine != null) {
                     status.setMedicine(medicine);
                     message.setText("Выбрано лекарство:\n" + textFromChat + " - " + medicine.getName() +
@@ -254,22 +254,30 @@ public class MedicineServiceImpl implements MedicineService {
 
     @Override
     @SneakyThrows
-    public SendMessage getDetailsByNumber(Update update, Status status) {
+    public SendMessage getMedDetails(Update update) {
         log.info("----> вход в getDetailsByNumber() <----");
         SendMessage message = new SendMessage();
+        SendPhoto photo;
         Long userId = updateService.getUserId(update);
         Long chatId = updateService.getChatId(update);
-        String textFromChat = updateService.getTextFromMessage(update);
-        Medicine medicine = getMedByNumber(update, status.getComparator());
-
         message.setChatId(chatId);
+        String textFromChat = updateService.getTextFromMessage(update);
+        Status status = userStatusService.getCurrentStatus(userId);
+
+        Medicine medicine;
+
+        if (textFromChat == null) {
+            medicine = status.getMedicine();
+        } else {
+            medicine = getMedByNumber(textFromChat, status.getComparator());
+        }
 
         if (medicine == null) {
             message.setText(String.format("В базе нет лекарства с порядковым номером [%s]\nВведите корректный номер:", textFromChat));
             return message;
         }
 
-        SendPhoto photo = getMedicinePhoto(medicine);
+        photo = getMedicinePhoto(medicine);
 
         if (photo != null) {
             photo.setChatId(updateService.getChatId(update));
@@ -289,65 +297,25 @@ public class MedicineServiceImpl implements MedicineService {
                 .editStatus(EditStatus.NONE)
                 .medicine(medicine)
                 .build());
-//        userStatusService.setCurrentStatus(userId, Status.NONE.setEditStatus(EditStatus.NONE).setAddStatus(AddStatus.NONE).setMedicine(medicine));
-
         log.info("<---- выход из getDetailsByNumber() ---->");
         return message;
     }
 
     @Override
-    @SneakyThrows
-    public SendMessage getDetailsByMedicine(Update update, Medicine medicine) {
-        SendMessage message = new SendMessage();
-        Long userId = updateService.getUserId(update);
-        Long chatId = updateService.getChatId(update);
-        message.setChatId(chatId);
-
-        if (medicine == null) {
-            message.setText("В базе нет такого лекарства");
-            return message;
-        }
-
-        SendPhoto photo = getMedicinePhoto(medicine);
-
-        if (photo != null) {
-            photo.setChatId(updateService.getChatId(update));
-            remedyBot.execute(photo);
-        }
-
-        message.setText("Препарат..... " + medicine.getName()
-                + "\nДозировка.. " + medicine.getDosage()
-                + "\nКол-во.......... " + medicine.getQuantity()
-                + "\nГоден до....... " + medicine.getTextExpDate());
-        message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDetailView());
-
-        userStatusService.resetStatus(userId);
-        userStatusService.setCurrentStatus(userId, Status.builder()
-                .mainStatus(MainStatus.NONE)
-                .addStatus(AddStatus.NONE)
-                .editStatus(EditStatus.NONE)
-                .medicine(medicine)
-                .build());
-//        userStatusService.setCurrentStatus(userId, Status.NONE.setEditStatus(EditStatus.NONE).setAddStatus(AddStatus.NONE).setMedicine(medicine));
-
-        log.info("<---- выход из getDetailsByNumber() ---->");
-        return message;
-    }
-
-    @Override
-    public SendMessage deleteMedByNumber(Update update, Status status) {
+    public SendMessage deleteMedByNumber(Update update) {
         log.info("----> вход в deleteMedByNumber() <----");
         SendMessage message = new SendMessage();
         message.setChatId(updateService.getChatId(update));
         Long userId = updateService.getUserId(update);
         String textFromChat = updateService.getTextFromMessage(update);
+        Status currentStatus = userStatusService.getCurrentStatus(userId);
 
         Medicine medicine;
 
-        if(status.getMedicine() == null) {
-            medicine = getMedByNumber(update, status.getComparator());
+        if (currentStatus.getMedicine() == null) {
+            medicine = getMedByNumber(textFromChat, currentStatus.getComparator());
         } else {
-            medicine = status.getMedicine();
+            medicine = currentStatus.getMedicine();
         }
 
         if (medicine != null) {
@@ -556,14 +524,13 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
-    public Medicine getMedByNumber(Update update, Comparator<Medicine> comparator) {
-        String textFromChat = updateService.getTextFromMessage(update);
+    public Medicine getMedByNumber(String medNumberFromUpdateText, Comparator<Medicine> comparator) {
         Medicine medicine;
         List<Medicine> meds = getAllMeds(comparator);
 
         for (int x = 1; x <= meds.size(); x++) {
-            log.info("X = {}, textFromChat = {}", x, textFromChat);
-            if (String.valueOf(x).equals(textFromChat)) {
+            log.info("X = {}, textFromChat = {}", x, medNumberFromUpdateText);
+            if (String.valueOf(x).equals(medNumberFromUpdateText)) {
                 medicine = getAllMeds(comparator).get(x - 1);
                 log.debug("getMedByNumber(): Нашли лекарство {}", medicine);
                 return medicine;

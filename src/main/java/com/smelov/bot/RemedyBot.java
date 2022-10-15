@@ -1,7 +1,7 @@
 package com.smelov.bot;
 
 import com.smelov.config.BotConfig;
-import com.smelov.service.impl.UpdateReceivedHandler;
+import com.smelov.handler.UpdateReceivedHandler;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
