@@ -6,6 +6,7 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
+import java.util.List;
 
 @Data
 @Builder
@@ -19,13 +20,10 @@ public class Status {
 
     @Override
     public String toString() {
-//        return super.toString() + "; AddStatus: " + getAddStatus() + "; EditStatus: " + getEditStatus() + " (привязан к "  + medicine.getName() + ")";
         return "MainStatus: " + getMainStatus() +
                 "; AddStatus: " + getAddStatus() +
                 "; EditStatus: " + getEditStatus() +
                 "; Medicine: " +
                 ((medicine != null) ? medicine.getName() : "---");
-//                " (привязан к "  + ((medicine != null) ? medicine.getName() : "null")
-//                + ")";
     }
 }

@@ -92,21 +92,26 @@ public class MedicineServiceImpl implements MedicineService {
                             .editStatus(EditStatus.EDIT_NAME)
                             .medicine(medicine)
                             .build());
-//                    userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_NAME).setMedicine(medicine));
                     log.info("<---- выход из editMedByNumber() ---->");
                     return message;
 
                 case "EDIT_DOSAGE_BUTTON":
                     log.info("EDIT_DOSAGE_BUTTON");
                     message.setReplyMarkup(new ReplyKeyboardRemove(true));
-                    message.setText(String.format("Заменить [%s] на:", extractDataWithoutUnits(medicine.getDosage())));
-                    userStatusService.setCurrentStatus(userId, Status.builder()
-                            .mainStatus(MainStatus.EDIT)
-                            .addStatus(AddStatus.NONE)
-                            .editStatus(EditStatus.EDIT_DOSAGE)
-                            .medicine(medicine)
-                            .build());
-//                    userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_DOSAGE).setMedicine(medicine));
+
+                    if (extractDataWithoutUnits(medicine.getDosage()).equals("---")) {
+                        message.setText("Для данного препарата дозировка неактуальна");
+                        userStatusService.resetStatus(userId);
+                    } else {
+                        message.setText(String.format("Заменить [%s] на:", extractDataWithoutUnits(medicine.getDosage())));
+                        userStatusService.setCurrentStatus(userId, Status.builder()
+                                .mainStatus(MainStatus.EDIT)
+                                .addStatus(AddStatus.NONE)
+                                .editStatus(EditStatus.EDIT_DOSAGE)
+                                .medicine(medicine)
+                                .build());
+                    }
+
                     log.info("<---- выход из editMedByNumber() ---->");
                     return message;
 
@@ -120,7 +125,6 @@ public class MedicineServiceImpl implements MedicineService {
                             .editStatus(EditStatus.EDIT_QTY)
                             .medicine(medicine)
                             .build());
-//                    userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_QTY).setMedicine(medicine));
                     log.info("<---- выход из editMedByNumber() ---->");
                     return message;
 
@@ -134,7 +138,6 @@ public class MedicineServiceImpl implements MedicineService {
                             .editStatus(EditStatus.EDIT_EXP)
                             .medicine(medicine)
                             .build());
-//                    userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_EXP).setMedicine(medicine));
                     log.info("<---- выход из editMedByNumber() ---->");
                     return message;
 
@@ -143,11 +146,15 @@ public class MedicineServiceImpl implements MedicineService {
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                     SendPhoto photo = getMedicinePhoto(medicine);
                     if ((photo == null)) {
-                        message.setText(String.format("Фото для [%s] ранее не было назначено!\nСделайте фото:", medicine.getName() + " - " + medicine.getDosage()));
-//                        userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_PHOTO).setMedicine(medicine));
+                        message.setText(String.format("Фото для [%s] ранее не было назначено!\nСделайте фото:", medicine.getName() +
+                                ((medicine.getDosage().equals("---"))
+                                        ? ""
+                                        : (" - " + medicine.getDosage()))));
                     } else {
-                        message.setText(String.format("Сделайте новое фото для [%s]:", medicine.getName() + " - " + medicine.getDosage()));
-//                        userStatusService.setCurrentStatus(userId, Status.EDIT.setEditStatus(EditStatus.EDIT_PHOTO).setMedicine(medicine));
+                        message.setText(String.format("Сделайте новое фото для [%s]:", medicine.getName() +
+                                ((medicine.getDosage().equals("---"))
+                                        ? ""
+                                        : (" - " + medicine.getDosage()))));
                     }
                     userStatusService.setCurrentStatus(userId, Status.builder()
                             .mainStatus(MainStatus.EDIT)
@@ -253,11 +260,9 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
-    @SneakyThrows
     public SendMessage getMedDetails(Update update) {
         log.info("----> вход в getDetailsByNumber() <----");
         SendMessage message = new SendMessage();
-        SendPhoto photo;
         Long userId = updateService.getUserId(update);
         Long chatId = updateService.getChatId(update);
         message.setChatId(chatId);
@@ -277,26 +282,19 @@ public class MedicineServiceImpl implements MedicineService {
             return message;
         }
 
-        photo = getMedicinePhoto(medicine);
-
-        if (photo != null) {
-            photo.setChatId(updateService.getChatId(update));
-            remedyBot.execute(photo);
-        }
-
         message.setText("Препарат..... " + medicine.getName()
                 + "\nДозировка.. " + medicine.getDosage()
                 + "\nКол-во.......... " + medicine.getQuantity()
                 + "\nГоден до....... " + medicine.getTextExpDate());
         message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDetailView());
 
-        userStatusService.resetStatus(userId);
         userStatusService.setCurrentStatus(userId, Status.builder()
                 .mainStatus(MainStatus.NONE)
                 .addStatus(AddStatus.NONE)
                 .editStatus(EditStatus.NONE)
                 .medicine(medicine)
                 .build());
+
         log.info("<---- выход из getDetailsByNumber() ---->");
         return message;
     }
@@ -335,7 +333,6 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
-    @SneakyThrows
     public SendMessage addMedicine(Update update) {
         log.info("----> вход в addMedicine() <----");
         SendMessage message = new SendMessage();
@@ -359,7 +356,6 @@ public class MedicineServiceImpl implements MedicineService {
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
                         .build());
-//                userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.DOSAGE).setMedicine(newMed));
                 log.info("Блок case NAME:. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case NAME. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
@@ -374,7 +370,6 @@ public class MedicineServiceImpl implements MedicineService {
                             .editStatus(EditStatus.NONE)
                             .medicine(newMed)
                             .build());
-//                    userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.QUANTITY).setMedicine(newMed));
                     newMed.setDosage("---");
                     break;
                 }
@@ -387,7 +382,6 @@ public class MedicineServiceImpl implements MedicineService {
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
                         .build());
-//                userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.DOSAGE_TYPE).setMedicine(newMed));
                 log.info("Блок case DOSAGE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case DOSAGE. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
@@ -410,9 +404,6 @@ public class MedicineServiceImpl implements MedicineService {
                             break;
                     }
                 }
-//                else {
-//                    newMed.setDosage(newMed.getDosage() + " мг.");
-//                }
                 message.setText("Введите количество лекарства:");
                 userStatusService.setCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.ADD)
@@ -420,7 +411,6 @@ public class MedicineServiceImpl implements MedicineService {
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
                         .build());
-//                userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.QUANTITY).setMedicine(newMed));
                 log.info("Блок case DOSAGE_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case DOSAGE_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
@@ -436,7 +426,6 @@ public class MedicineServiceImpl implements MedicineService {
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
                         .build());
-//                userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.QUANTITY_TYPE).setMedicine(newMed));
                 log.info("Блок case QUANTITY. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case QUANTITY. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
@@ -464,7 +453,6 @@ public class MedicineServiceImpl implements MedicineService {
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
                         .build());
-//                userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.EXP_DATE).setMedicine(newMed));
                 log.info("Блок case QUANTITY_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case QUANTITY_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
@@ -481,13 +469,14 @@ public class MedicineServiceImpl implements MedicineService {
                             .editStatus(EditStatus.NONE)
                             .medicine(newMed)
                             .build());
-//                    userStatusService.setCurrentStatus(userId, Status.ADD.setAddStatus(AddStatus.PHOTO).setMedicine(newMed));
                     message.setText("Добавьте фотографию препарата или нажмите ОТМЕНА, если добавлять фото не нужно:");
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForSkip());
                 } else {
                     message.setText("Введите ГОД и МЕСЯЦ через пробел");
                     log.debug("Status при неверном вводе даты {}", status);
                 }
+                log.info("Блок case EXP_DATE. Добавили в Map: key:{}  value:{}", userId, status);
+                log.debug("Блок case EXP_DATE. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
 
             case PHOTO:
@@ -496,22 +485,18 @@ public class MedicineServiceImpl implements MedicineService {
 
                 if (update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("SKIP_BUTTON")) {
                     message.setText(String.format("Вы добавили %s в базу без фото", newMed.getName()));
-//                    message.setReplyMarkup(new ReplyKeyboardRemove());
                 }
 
                 if (update.hasMessage() && update.getMessage().hasPhoto()) {
                     log.info("----> вход в hasPhoto() <----");
                     setMedicinePhoto(update, newMed);
-//                    remedyBot.execute(message);
                     message.setText(String.format("Вы добавили %s в базу с фото", newMed.getName()));
-//                    message.setReplyMarkup(new ReplyKeyboardRemove());
                     log.info("<---- выход из hasPhoto() ---->");
                 }
 
                 if (getMedById(newMed) == null) {
                     medicineRepository.save(newMed);
                     log.info("В базу сохранено лекарство: {}", newMed);
-//                    message.setText(String.format("Вы добавили %s в базу", newMed.getName()));
                 } else {
                     message.setText(String.format("%s\n%s\n%s\n\nУже есть в базе!\nЕсли вы ходите изменить кол-во имеющегося лекарства, то выберите пункт меню ИЗМЕНИТЬ", newMed.getName(), newMed.getDosage(), newMed.getExpDate().toString()));
                 }
@@ -546,6 +531,10 @@ public class MedicineServiceImpl implements MedicineService {
     private String extractDataWithoutUnits(String withUnits) {
         StringBuilder dosage = new StringBuilder();
 
+        if (withUnits.equals("---")) {
+            return dosage.append(withUnits).toString();
+        }
+
         for (int x = 0; withUnits.charAt(x) != ' '; x++) {
             dosage.append(withUnits.charAt(x));
         }
@@ -562,7 +551,7 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @SneakyThrows
-    private SendPhoto getMedicinePhoto(Medicine medicine) {
+    public SendPhoto getMedicinePhoto(Medicine medicine) {
         SendPhoto photo = null;
         java.io.File file = new java.io.File("./src/main/resources/photo/" + medicine.getName() + "_" + medicine.getDosage() + ".jpg");
         if (file.exists()) {

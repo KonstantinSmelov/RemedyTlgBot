@@ -10,7 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -27,7 +29,6 @@ public class UserStatusServiceImpl implements UserStatusService {
     @Override
     public Status getCurrentStatus(Long userId) {
         log.info("----> вход в getCurrentStatus() <----");
-        System.out.println("getCurrentStatus(): " + userStatusMap);
         Status status = Status.builder()
                 .mainStatus(MainStatus.NONE)
                 .addStatus(AddStatus.NONE)
