@@ -42,6 +42,8 @@ public class MedicineServiceImpl implements MedicineService {
     private final UpdateService updateService;
     private final DateService dateService;
     private final RemedyBot remedyBot;
+    private final ChatMessagesService chatMessagesService;
+
 
     @Override
     public List<Medicine> getAllMeds(Comparator<Medicine> comparator) {
@@ -175,8 +177,10 @@ public class MedicineServiceImpl implements MedicineService {
         switch (status.getEditStatus()) {
             case NONE:
                 log.debug("editMedByNumber(), блок case NONE");
+
                 medicine = getMedByNumber(textFromChat, status.getComparator());
                 if (medicine != null) {
+                    chatMessagesService.deleteMessagesFromChat(update);
                     status.setMedicine(medicine);
                     message.setText("Выбрано лекарство:\n" + textFromChat + " - " + medicine.getName() +
                             " - " + medicine.getDosage() + " - " + medicine.getQuantity() +
@@ -193,9 +197,10 @@ public class MedicineServiceImpl implements MedicineService {
                 medToEdit = new Medicine(medicine);
                 medToEdit.setName(textFromChat);
                 if (edit(medToEdit, medicine)) {
+                    chatMessagesService.deleteMessagesFromChat(update);
                     userStatusService.resetStatus(userId);
                     renamePhotoFile(currentMed1, medToEdit);
-                    message.setText("Название изменено");
+                    message.setText(String.format("%s изменено на %s", currentMed1.getName(), medToEdit.getName()));
                 } else {
                     message.setText("Название НЕ изменено");
                 }
@@ -208,6 +213,7 @@ public class MedicineServiceImpl implements MedicineService {
                 medToEdit.setDosage(textFromChat + medicine.getDosage().substring(medicine.getDosage().length() - 4));
                 if (edit(medToEdit, medicine)) {
                     renamePhotoFile(currentMed2, medToEdit);
+                    chatMessagesService.deleteMessagesFromChat(update);
                     userStatusService.resetStatus(userId);
                     message.setText("Дозировка изменена");
                 } else {
@@ -220,6 +226,7 @@ public class MedicineServiceImpl implements MedicineService {
                 medToEdit = new Medicine(medicine);
                 medToEdit.setQuantity(textFromChat + " " + extractUnitsWithoutData(medicine.getQuantity()));
                 if (edit(medToEdit, medicine)) {
+                    chatMessagesService.deleteMessagesFromChat(update);
                     userStatusService.resetStatus(userId);
                     message.setText("Кол-во изменено");
                 } else {
@@ -234,6 +241,7 @@ public class MedicineServiceImpl implements MedicineService {
                 if (optionalDate.isPresent()) {
                     medToEdit.setExpDate(optionalDate.get());
                     if (edit(medToEdit, medicine)) {
+                        chatMessagesService.deleteMessagesFromChat(update);
                         userStatusService.resetStatus(userId);
                         message.setText("Срок годности изменён");
                     } else {
@@ -250,6 +258,7 @@ public class MedicineServiceImpl implements MedicineService {
                 deleteMedicinePhoto(medicine);
                 setMedicinePhoto(update, medicine);
 
+                chatMessagesService.deleteMessagesFromChat(update);
                 userStatusService.resetStatus(userId);
                 message.setText("Фото изменено");
 
@@ -484,11 +493,13 @@ public class MedicineServiceImpl implements MedicineService {
                 log.info("Блок case PHOTO. Пробуем принять фото");
 
                 if (update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("SKIP_BUTTON")) {
+                    chatMessagesService.deleteMessagesFromChat(update);
                     message.setText(String.format("Вы добавили %s в базу без фото", newMed.getName()));
                 }
 
                 if (update.hasMessage() && update.getMessage().hasPhoto()) {
                     log.info("----> вход в hasPhoto() <----");
+                    chatMessagesService.deleteMessagesFromChat(update);
                     setMedicinePhoto(update, newMed);
                     message.setText(String.format("Вы добавили %s в базу с фото", newMed.getName()));
                     log.info("<---- выход из hasPhoto() ---->");

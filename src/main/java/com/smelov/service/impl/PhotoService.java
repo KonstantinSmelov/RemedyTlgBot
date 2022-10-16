@@ -24,7 +24,7 @@ public class PhotoService {
 
     @SneakyThrows
     public void showPhotoIfExist(Update update, Medicine medicine) {
-        if(medicineService.getMedicinePhoto(medicine) != null) {
+        if(medicine != null && medicineService.getMedicinePhoto(medicine) != null) {
             SendPhoto photo = medicineService.getMedicinePhoto(medicine);
             photo.setChatId(updateService.getChatId(update));
             Message sended = remedyBot.execute(photo);

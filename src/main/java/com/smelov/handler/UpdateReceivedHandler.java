@@ -12,6 +12,7 @@ import com.smelov.service.MedicineService;
 import com.smelov.service.TextMessageService;
 import com.smelov.service.UpdateService;
 import com.smelov.service.UserStatusService;
+import com.smelov.service.impl.ChatMessagesService;
 import com.smelov.service.impl.PhotoService;
 import com.vdurmont.emoji.EmojiParser;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class UpdateReceivedHandler {
     private final MedicineService medicineService;
     private final CustomInlineKeyboardMarkup customInlineKeyboardMarkup;
     private final PhotoService photoService;
+    private final ChatMessagesService chatMessagesService;
 
     @SneakyThrows
     public void onUpdateReceived(Update update) {
@@ -70,6 +72,7 @@ public class UpdateReceivedHandler {
                 ||
                 update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("CANCEL_BUTTON")) {
             log.info("Возвращаемся в гл. меню, обнуляем статус");
+            chatMessagesService.deleteMessagesFromChat(update);
             userStatusService.resetStatus(userId);
             message.setReplyMarkup(new ReplyKeyboardRemove(true));
             message.setText(EmojiParser.parseToUnicode("Вышли в начальное состояние.\nНажмите кнопку меню\n" +
@@ -81,17 +84,7 @@ public class UpdateReceivedHandler {
         }
 
         if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("Del")) {
-            DeleteMessage deleteMessage = new DeleteMessage();
-
-            for (Integer messageId : userMessageIds) {
-                deleteMessage.setMessageId(messageId);
-                deleteMessage.setChatId(updateService.getChatId(update));
-                System.out.print("Удаляем message/callback " + messageId + "... ");
-                remedyBot.execute(deleteMessage);
-                System.out.println("ОК");
-            }
-            StaticClass.userMessageIds = new HashSet<>();
-            System.out.println("После удаления: " + StaticClass.userMessageIds);
+            chatMessagesService.deleteMessagesFromChat(update);
             return;
         }
 
@@ -114,23 +107,10 @@ public class UpdateReceivedHandler {
 
         } else if (update.hasCallbackQuery()) {
             BotApiMethod<?> someBotApiMethod = callbackQueryHandler(update);
-
-            System.out.println(someBotApiMethod.getClass().getName());
-
-            if (someBotApiMethod.getClass().getName().equals("org.telegram.telegrambots.meta.api.methods.send.SendMessage")) {
-                SendMessage sendMessage = (SendMessage) someBotApiMethod;
-                Message forDelete = remedyBot.execute(sendMessage);
-                StaticClass.userMessageIds.add(forDelete.getMessageId());
-                System.out.println("Занесли ID: " + forDelete.getMessageId());
-                System.out.println("userMessageIds: " + StaticClass.userMessageIds);
-            }
-            if (someBotApiMethod.getClass().getName().equals("org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText")) {
-                EditMessageText editMessageText = (EditMessageText) someBotApiMethod;
-                Message forDelete = (Message) remedyBot.execute(editMessageText);
-                StaticClass.userMessageIds.add(forDelete.getMessageId());
-                System.out.println("Занесли ID: " + forDelete.getMessageId());
-                System.out.println("userMessageIds: " + StaticClass.userMessageIds);
-            }
+            Message forDelete = (Message) remedyBot.execute(someBotApiMethod);
+            StaticClass.userMessageIds.add(forDelete.getMessageId());
+            System.out.println("Занесли ID: " + forDelete.getMessageId());
+            System.out.println("userMessageIds: " + StaticClass.userMessageIds);
             log.info("<===== выход из onUpdateReceived() =====>\n");
 
         } else {
@@ -154,6 +134,7 @@ public class UpdateReceivedHandler {
         message.setChatId(update.getMessage().getChatId());
         switch (update.getMessage().getText()) {
             case "/by_name":
+                chatMessagesService.deleteMessagesFromChat(update);
                 userStatusService.setCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.NONE)
                         .addStatus(AddStatus.NONE)
