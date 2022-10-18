@@ -21,6 +21,7 @@ public class PhotoService {
     private final MedicineService medicineService;
     private final UpdateService updateService;
     private final RemedyBot remedyBot;
+    private final ChatMessagesService chatMessagesService;
 
     @SneakyThrows
     public void showPhotoIfExist(Update update, Medicine medicine) {
@@ -28,7 +29,7 @@ public class PhotoService {
             SendPhoto photo = medicineService.getMedicinePhoto(medicine);
             photo.setChatId(updateService.getChatId(update));
             Message sended = remedyBot.execute(photo);
-            StaticClass.userMessageIds.add(sended.getMessageId());
+            chatMessagesService.addMessageToMessageIds(sended.getMessageId());
         }
     }
 }

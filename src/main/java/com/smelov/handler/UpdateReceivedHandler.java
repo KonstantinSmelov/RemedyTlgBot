@@ -1,6 +1,5 @@
 package com.smelov.handler;
 
-import com.smelov.StaticClass;
 import com.smelov.bot.RemedyBot;
 import com.smelov.entity.Medicine;
 import com.smelov.keyboard.CustomInlineKeyboardMarkup;
@@ -21,13 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -48,38 +46,43 @@ public class UpdateReceivedHandler {
         log.info("=====> вход в onUpdateReceived() <=====");
         log.info("Map статусов {}", userStatusService.getStatusMap());
 
-        Set<Integer> userMessageIds = StaticClass.userMessageIds;
-
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
-        Status status = userStatusService.getCurrentStatus(userId);
         message.setChatId(updateService.getChatId(update));
         message.setText("Простите, не понял в onUpdateReceived");
 
 
         if (update.hasMessage()) {
-            StaticClass.userMessageIds.add(update.getMessage().getMessageId());
-            System.out.println("Занесли user ID: " + update.getMessage().getMessageId());
-            System.out.println("userMessageIds: " + StaticClass.userMessageIds);
+            chatMessagesService.addMessageToMessageIds(update.getMessage().getMessageId());
         } else if (update.hasCallbackQuery()) {
-            StaticClass.userMessageIds.add(update.getCallbackQuery().getMessage().getMessageId());
-            System.out.println("Занесли user ID: " + update.getCallbackQuery().getMessage().getMessageId());
-            System.out.println("userMessageIds: " + StaticClass.userMessageIds);
+            chatMessagesService.addMessageToMessageIds(update.getCallbackQuery().getMessage().getMessageId());
         }
 
         //Обнуление статуса и выход в гл. меню из любого статуса
         if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/exit")
                 ||
-                update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("CANCEL_BUTTON")) {
+                (userStatusService.getCurrentStatus(userId).getMainStatus() != MainStatus.MAIN_MENU
+                        && update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("CANCEL_BUTTON"))) {
             log.info("Возвращаемся в гл. меню, обнуляем статус");
             chatMessagesService.deleteMessagesFromChat(update);
             userStatusService.resetStatus(userId);
-            message.setReplyMarkup(new ReplyKeyboardRemove(true));
-            message.setText(EmojiParser.parseToUnicode("Вышли в начальное состояние.\nНажмите кнопку меню\n" +
-                    "   :arrow_down:"));
+
+            userStatusService.setCurrentStatus(userId, Status.builder()
+                    .mainStatus(MainStatus.NONE)
+                    .addStatus(AddStatus.NONE)
+                    .editStatus(EditStatus.NONE)
+                    .comparator(Comparator.comparing(Medicine::getName))
+                    .medicine(new Medicine())
+                    .build());
+            message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
+            message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
+
+//            message.setReplyMarkup(new ReplyKeyboardRemove(true));
+//            message.setText(EmojiParser.parseToUnicode("Вышли в начальное состояние.\nНажмите кнопку меню\n" +
+//                    "   :arrow_down:"));
             log.info("<===== выход из onUpdateReceived() =====>\n");
             remedyBot.execute(message);
-            StaticClass.userMessageIds = new HashSet<>();
+            chatMessagesService.clearMessageIds();
             return;
         }
 
@@ -92,34 +95,44 @@ public class UpdateReceivedHandler {
         if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().matches("^/.*")) {
             message = messageTextHandler(update);
             Message forDelete = remedyBot.execute(message);
-            StaticClass.userMessageIds.add(forDelete.getMessageId());
-            System.out.println("Занесли ID: " + forDelete.getMessageId());
-            System.out.println("userMessageIds: " + StaticClass.userMessageIds);
+            chatMessagesService.addMessageToMessageIds(forDelete.getMessageId());
             log.info("<===== выход из onUpdateReceived() =====>\n");
 
-        } else if (status.getMainStatus() != MainStatus.NONE) {
+        } else if (userStatusService.getCurrentStatus(userId).getMainStatus() != MainStatus.NONE) {
             message = currentStatusHandler(update);
             Message forDelete = remedyBot.execute(message);
-            StaticClass.userMessageIds.add(forDelete.getMessageId());
-            System.out.println("Занесли ID: " + forDelete.getMessageId());
-            System.out.println("userMessageIds: " + StaticClass.userMessageIds);
+            chatMessagesService.addMessageToMessageIds(forDelete.getMessageId());
+
+            if(userStatusService.getCurrentStatus(userId).getMainStatus() == MainStatus.MAIN_MENU) {
+                System.out.println("Вошли в MainStatus.MAIN_MENU");
+                chatMessagesService.deleteMessagesFromChat(update);
+                userStatusService.resetStatus(userId);
+
+                userStatusService.setCurrentStatus(userId, Status.builder()
+                        .mainStatus(MainStatus.NONE)
+                        .addStatus(AddStatus.NONE)
+                        .editStatus(EditStatus.NONE)
+                        .comparator(Comparator.comparing(Medicine::getName))
+                        .medicine(new Medicine())
+                        .build());
+                message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
+                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
+                remedyBot.execute(message);
+                chatMessagesService.clearMessageIds();
+            }
             log.info("<===== выход из onUpdateReceived() =====>\n");
 
         } else if (update.hasCallbackQuery()) {
             BotApiMethod<?> someBotApiMethod = callbackQueryHandler(update);
             Message forDelete = (Message) remedyBot.execute(someBotApiMethod);
-            StaticClass.userMessageIds.add(forDelete.getMessageId());
-            System.out.println("Занесли ID: " + forDelete.getMessageId());
-            System.out.println("userMessageIds: " + StaticClass.userMessageIds);
+            chatMessagesService.addMessageToMessageIds(forDelete.getMessageId());
             log.info("<===== выход из onUpdateReceived() =====>\n");
 
         } else {
             message = messageTextHandler(update);
             Message forDelete = remedyBot.execute(message);
-            StaticClass.userMessageIds.add(forDelete.getMessageId());
+            chatMessagesService.addMessageToMessageIds(forDelete.getMessageId());
             log.info("<===== выход из onUpdateReceived() =====>\n");
-            System.out.println("Занесли ID: " + forDelete.getMessageId());
-            System.out.println("userMessageIds: " + StaticClass.userMessageIds);
         }
     }
 
@@ -129,7 +142,7 @@ public class UpdateReceivedHandler {
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
 
-        message.setText("Выберете пункт меню");
+//        message.setText("Выберете пункт меню");
 
         message.setChatId(update.getMessage().getChatId());
         switch (update.getMessage().getText()) {
@@ -241,9 +254,7 @@ public class UpdateReceivedHandler {
                         .medicine(status.getMedicine())
                         .comparator(status.getComparator())
                         .build());
-
                 log.info("<---- выход из callbackQueryHandler() ---->");
-
                 return editedMessage;
         }
         log.info("<---- выход из callbackQueryHandler() ---->");
@@ -257,8 +268,23 @@ public class UpdateReceivedHandler {
         SendMessage message = new SendMessage();
 
         switch (status.getMainStatus()) {
+
+            case MAIN_MENU:
+                chatMessagesService.deleteMessagesFromChat(update);
+                Long userId = updateService.getUserId(update);
+                userStatusService.setCurrentStatus(userId, Status.builder()
+                        .mainStatus(MainStatus.NONE)
+                        .addStatus(AddStatus.NONE)
+                        .editStatus(EditStatus.NONE)
+                        .comparator(Comparator.comparing(Medicine::getName))
+                        .medicine(new Medicine())
+                        .build());
+                message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
+                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
+                return message;
             case DEL:
                 log.debug("Получили статус {}", status);
+                chatMessagesService.deleteMessagesFromChat(update);
                 message = medicineService.deleteMedByNumber(update);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
