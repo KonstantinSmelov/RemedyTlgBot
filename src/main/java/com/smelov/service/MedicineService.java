@@ -1,6 +1,7 @@
 package com.smelov.service;
 
 import com.smelov.entity.Medicine;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -14,7 +15,7 @@ public interface MedicineService {
     SendMessage addMedicine(Update update);
     SendMessage deleteMedByNumber(Update update);
     SendMessage editMedByNumber(Update update);
-    SendMessage getMedDetails(Update update);
+    BotApiMethod<?> getMedDetails(Update update);
     Medicine getMedByNumber(String medicineNumberFromUpdateText, Comparator<Medicine> comparator);
     SendPhoto getMedicinePhoto(Medicine medicine);
 }
