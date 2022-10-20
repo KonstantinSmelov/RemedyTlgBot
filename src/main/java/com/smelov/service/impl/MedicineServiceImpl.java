@@ -459,6 +459,17 @@ public class MedicineServiceImpl implements MedicineService {
         String textFromChat = updateService.getTextFromMessage(update);
         Status currentStatus = userStatusService.getCurrentStatus(userId);
 
+        if (update.hasCallbackQuery()) {
+            switch (update.getCallbackQuery().getData()) {
+                case "CANCEL_BUTTON":
+                    log.info("CANCEL_BUTTON");
+                    userStatusService.resetStatus(userId);
+                    message.setText("Отмена...");
+                    StaticClass.proceed = true;
+                    return message;
+            }
+        }
+
         Medicine medicine;
 
         if (currentStatus.getMedicine() == null) {

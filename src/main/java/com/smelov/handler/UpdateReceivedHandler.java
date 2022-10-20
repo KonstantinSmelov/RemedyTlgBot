@@ -53,6 +53,7 @@ public class UpdateReceivedHandler {
         sendMessage.setChatId(updateService.getChatId(update));
         sendMessage.setText("Простите, не понял в onUpdateReceived");
 
+
         if (update.hasMessage()) {
             chatMessagesService.addNewIdToMessageIds(update.getMessage().getMessageId());
         } else if (update.hasCallbackQuery()) {
@@ -102,6 +103,7 @@ public class UpdateReceivedHandler {
             Message forDelete = remedyBot.execute(sendMessage);
             chatMessagesService.addNewIdToMessageIds(forDelete.getMessageId());
             log.info("<===== выход из onUpdateReceived() =====>\n");
+            return;
 
         } else if (userStatusService.getCurrentStatus(userId).getMainStatus().equals(MainStatus.MAIN_MENU)
                 &&
@@ -110,10 +112,10 @@ public class UpdateReceivedHandler {
                 !update.hasMessage()) {
             System.out.println("*********UpdateReceivedHandler(), MainStatus == MAIN_MENU ***************");
             chatMessagesService.deleteMessagesFromChat(update);
-            userStatusService.resetStatus(userId);
+//            userStatusService.resetStatus(userId);
 
             userStatusService.setCurrentStatus(userId, Status.builder()
-                    .mainStatus(MainStatus.MAIN_MENU)
+                    .mainStatus(MainStatus.NONE)
                     .addStatus(AddStatus.NONE)
                     .editStatus(EditStatus.NONE)
                     .comparator(Comparator.comparing(Medicine::getName))
@@ -123,6 +125,7 @@ public class UpdateReceivedHandler {
             sendMessage.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
             remedyBot.execute(sendMessage);
             chatMessagesService.clearMessageIds();
+            return;
 
         } else if (userStatusService.getCurrentStatus(userId).getMainStatus() != MainStatus.MAIN_MENU) {
             System.out.println("*********UpdateReceivedHandler(), MainStatus != MAIN_MENU до while ***************");
@@ -137,13 +140,16 @@ public class UpdateReceivedHandler {
                 System.out.println(userStatusService.getCurrentStatus(userId));
                 log.info("<===== выход из onUpdateReceived() =====>\n");
             }
+            return;
+        }
 
-        } else if (update.hasCallbackQuery()) {
+        else if (update.hasCallbackQuery()) {
             System.out.println("*********UpdateReceivedHandler(), hasCallbackQuery() найден ***************");
             BotApiMethod<?> someBotApiMethod = callbackQueryHandler(update);
             Message forDelete = (Message) remedyBot.execute(someBotApiMethod);
             chatMessagesService.addNewIdToMessageIds(forDelete.getMessageId());
             log.info("<===== выход из onUpdateReceived() =====>\n");
+            return;
 
         } else {
             System.out.println("*********UpdateReceivedHandler(), hasText() без команды /* найден ***************");

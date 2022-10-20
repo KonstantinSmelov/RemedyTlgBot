@@ -50,8 +50,6 @@ public class ChatMessagesService {
 
     public void addNewIdToMessageIds(Integer messageId) {
         this.messageIds.add(messageId);
-        System.out.println("Занесли messageID: " + messageId);
-        System.out.println("Текущий messageIDs: " + messageIds);
     }
 
     public void clearMessageIds() {
