@@ -1,6 +1,5 @@
 package com.smelov.service.impl;
 
-import com.smelov.StaticClass;
 import com.smelov.bot.RemedyBot;
 import com.smelov.entity.Medicine;
 import com.smelov.service.MedicineService;
@@ -29,7 +28,7 @@ public class PhotoService {
             SendPhoto photo = medicineService.getMedicinePhoto(medicine);
             photo.setChatId(updateService.getChatId(update));
             Message sended = remedyBot.execute(photo);
-            chatMessagesService.addMessageToMessageIds(sended.getMessageId());
+            chatMessagesService.addNewIdToMessageIds(sended.getMessageId());
         }
     }
 }

@@ -1,7 +1,16 @@
 package com.smelov.service.impl;
 
 import com.smelov.bot.RemedyBot;
+import com.smelov.entity.Medicine;
+import com.smelov.keyboard.CustomInlineKeyboardMarkup;
+import com.smelov.model.AddStatus;
+import com.smelov.model.EditStatus;
+import com.smelov.model.MainStatus;
+import com.smelov.model.Status;
+import com.smelov.service.MedicineService;
+import com.smelov.service.TextMessageService;
 import com.smelov.service.UpdateService;
+import com.smelov.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +19,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,6 +31,7 @@ public class ChatMessagesService {
     private final UpdateService updateService;
     private final RemedyBot remedyBot;
     private final Set<Integer> messageIds = new HashSet<>();
+    private final UserStatusService userStatusService;
 
     @SneakyThrows
     public void deleteMessagesFromChat(Update update) {
@@ -37,7 +48,7 @@ public class ChatMessagesService {
         this.messageIds.clear();
     }
 
-    public void addMessageToMessageIds(Integer messageId) {
+    public void addNewIdToMessageIds(Integer messageId) {
         this.messageIds.add(messageId);
         System.out.println("Занесли messageID: " + messageId);
         System.out.println("Текущий messageIDs: " + messageIds);

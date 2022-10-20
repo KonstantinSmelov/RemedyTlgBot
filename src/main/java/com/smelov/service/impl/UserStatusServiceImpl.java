@@ -30,7 +30,7 @@ public class UserStatusServiceImpl implements UserStatusService {
     public Status getCurrentStatus(Long userId) {
         log.info("----> вход в getCurrentStatus() <----");
         Status status = Status.builder()
-                .mainStatus(MainStatus.NONE)
+                .mainStatus(MainStatus.MAIN_MENU)
                 .addStatus(AddStatus.NONE)
                 .editStatus(EditStatus.NONE)
                 .medicine(new Medicine())
@@ -57,7 +57,7 @@ public class UserStatusServiceImpl implements UserStatusService {
         Status status = userStatusMap.get(userId);
         log.info("status на входе для userId {}: {}", userId, status);
         status = Status.builder()
-                .mainStatus(MainStatus.NONE)
+                .mainStatus(MainStatus.MAIN_MENU)
                 .addStatus(AddStatus.NONE)
                 .editStatus(EditStatus.NONE)
                 .medicine(new Medicine())
