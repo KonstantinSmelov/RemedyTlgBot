@@ -58,17 +58,25 @@ public class CustomInlineKeyboardMarkup {
         inlineKeyboardMarkup = new InlineKeyboardMarkup();
         rowList = new ArrayList<>();
         List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow2 = new ArrayList<>();
         InlineKeyboardButton edit_Button = new InlineKeyboardButton();
         InlineKeyboardButton del_Button = new InlineKeyboardButton();
+        InlineKeyboardButton photo_Button = new InlineKeyboardButton();
+        InlineKeyboardButton mainMenu_Button = new InlineKeyboardButton();
 
         edit_Button.setText("ИЗМЕНИТЬ");
         edit_Button.setCallbackData("EDIT_FROM_DETAIL_BUTTON");
         del_Button.setText("УДАЛИТЬ");
         del_Button.setCallbackData("DEL_FROM_DETAIL_BUTTON");
+        mainMenu_Button.setText("ВЫХОД");
+        mainMenu_Button.setCallbackData("MAIN_MENU_BUTTON");
 
         buttonsRow1.add(edit_Button);
         buttonsRow1.add(del_Button);
+        buttonsRow2.add(mainMenu_Button);
+
         rowList.add(buttonsRow1);
+        rowList.add(buttonsRow2);
         inlineKeyboardMarkup.setKeyboard(rowList);
 
         return inlineKeyboardMarkup;

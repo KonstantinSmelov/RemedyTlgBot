@@ -10,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -34,6 +31,7 @@ public class UserStatusServiceImpl implements UserStatusService {
                 .addStatus(AddStatus.NONE)
                 .editStatus(EditStatus.NONE)
                 .medicine(new Medicine())
+                .comparator(Comparator.comparing(Medicine::getName))
                 .build();
         if (userStatusMap.containsKey(userId)) {
             status = userStatusMap.get(userId);
@@ -60,6 +58,7 @@ public class UserStatusServiceImpl implements UserStatusService {
                 .mainStatus(MainStatus.MAIN_MENU)
                 .addStatus(AddStatus.NONE)
                 .editStatus(EditStatus.NONE)
+                .comparator(Comparator.comparing(Medicine::getName))
                 .medicine(new Medicine())
                 .build();
         userStatusMap.put(userId, status);

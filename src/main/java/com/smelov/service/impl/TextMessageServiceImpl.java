@@ -17,6 +17,7 @@ public class TextMessageServiceImpl implements TextMessageService {
     public String nameList(List<Medicine> meds) {
         log.info("----> вход в nameList() <----");
         StringBuilder string = new StringBuilder();
+        string.append("Препараты в наличии: \n\n");
         int x = 1;
 
         for (Medicine med : meds) {

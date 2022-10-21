@@ -96,6 +96,8 @@ public class UpdateReceivedHandler {
 
         //Обработка текстовых команд верхнего уровня (гл. меню)
         System.out.println("*********UpdateReceivedHandler(), проверка hasText() или Status или hasCallbackQuery() ***********");
+        System.out.println("********* status:" + userStatusService.getCurrentStatus(userId) + "************");
+        System.out.println("********* getCallbackQuery: " + (update.hasCallbackQuery() ? update.getCallbackQuery().getData() : "null") + "**********");
 
         if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().matches("^/.*")) {
             System.out.println("*********UpdateReceivedHandler(), hasText() в виде команды /* найден ***************");
@@ -112,7 +114,6 @@ public class UpdateReceivedHandler {
                 !update.hasMessage()) {
             System.out.println("*********UpdateReceivedHandler(), MainStatus == MAIN_MENU ***************");
             chatMessagesService.deleteMessagesFromChat(update);
-//            userStatusService.resetStatus(userId);
 
             userStatusService.setCurrentStatus(userId, Status.builder()
                     .mainStatus(MainStatus.NONE)
@@ -137,13 +138,10 @@ public class UpdateReceivedHandler {
                 BotApiMethod<?> sendMessage1 = currentStatusHandler(update);
                 Message forDelete = (Message) remedyBot.execute(sendMessage1);
                 chatMessagesService.addNewIdToMessageIds(forDelete.getMessageId());
-                System.out.println(userStatusService.getCurrentStatus(userId));
                 log.info("<===== выход из onUpdateReceived() =====>\n");
             }
             return;
-        }
-
-        else if (update.hasCallbackQuery()) {
+        } else if (update.hasCallbackQuery()) {
             System.out.println("*********UpdateReceivedHandler(), hasCallbackQuery() найден ***************");
             BotApiMethod<?> someBotApiMethod = callbackQueryHandler(update);
             Message forDelete = (Message) remedyBot.execute(someBotApiMethod);
@@ -180,16 +178,28 @@ public class UpdateReceivedHandler {
                         .build());
                 message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
-                break;
+//                break;
 
             case "/start":
-                message.setText(EmojiParser.parseToUnicode("Добро пожаловать!\n\nЯ бот, который поможет в учёте лекарств в вашей домашней аптечке.\n\n" +
-                        "Нажмите кнопку меню\n" +
-                        "   :arrow_down:"));
+//                message.setText(EmojiParser.parseToUnicode("Добро пожаловать!\n\nЯ бот, который поможет в учёте лекарств в вашей домашней аптечке.\n\n" +
+//                        "Нажмите кнопку меню\n" +
+//                        "   :arrow_down:"));
+
+                chatMessagesService.deleteMessagesFromChat(update);
+                userStatusService.setCurrentStatus(userId, Status.builder()
+                        .mainStatus(MainStatus.MAIN_MENU)
+                        .addStatus(AddStatus.NONE)
+                        .editStatus(EditStatus.NONE)
+                        .comparator(Comparator.comparing(Medicine::getName))
+                        .medicine(new Medicine())
+                        .build());
+                message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
+                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                 break;
 
             default:
-                message.setText("Простите, не понял в messageTextHandler");
+//                message.setText("Простите, не понял в messageTextHandler");
+                message.setText(EmojiParser.parseToUnicode("Простите, не понял.\nНажмите Меню -> Список лекарств\n   :arrow_down:"));
                 break;
         }
         log.info("<---- выход из messageTextHandler() ---->");
@@ -252,6 +262,10 @@ public class UpdateReceivedHandler {
                         .comparator(status.getComparator())
                         .build());
                 break;
+
+            default:
+                message.setText("Не знаю статуса в callbackQueryHandler");
+                break;
         }
         log.info("<---- выход из callbackQueryHandler() ---->");
         return message;
@@ -291,6 +305,7 @@ public class UpdateReceivedHandler {
 
             case EDIT:
                 log.debug("Получили статус {}", status);
+                chatMessagesService.deleteMessagesFromChat(update);
                 sendMessage = medicineService.editMedByNumber(update);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
@@ -298,6 +313,7 @@ public class UpdateReceivedHandler {
 
             case ADD:
                 log.debug("Получили статус {}", status);
+                chatMessagesService.deleteMessagesFromChat(update);
                 sendMessage = medicineService.addMedicine(update);
                 log.info("<---- выход из currentStatusHandler() ---->");
                 log.info("<---- выход из onUpdateReceived() ---->");
@@ -305,6 +321,7 @@ public class UpdateReceivedHandler {
 
             case DETAIL:
                 log.debug("Получили статус {}", status);
+                chatMessagesService.deleteMessagesFromChat(update);
                 BotApiMethod<?> sendMessage1 = medicineService.getMedDetails(update);
                 Medicine medicine = userStatusService.getCurrentStatus(updateService.getUserId(update)).getMedicine();
                 photoService.showPhotoIfExist(update, medicine);

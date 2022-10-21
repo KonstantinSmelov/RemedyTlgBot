@@ -387,16 +387,20 @@ public class MedicineServiceImpl implements MedicineService {
 
                 case "EDIT_FROM_DETAIL_BUTTON":
                     log.info("EDIT_FROM_DETAIL_BUTTON");
-                    Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
-                    Long chatId1 = updateService.getChatId(update);
-                    EditMessageText editedMessage = new EditMessageText();
+//                    Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
+//                    Long chatId1 = updateService.getChatId(update);
 
+                    chatMessagesService.deleteMessagesFromChat(update);
                     message = getDetailsByNumber(update);
+                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
 
-                    editedMessage.setChatId(chatId1);
-                    editedMessage.setText(message.getText());
-                    editedMessage.setMessageId(messageId);
-                    editedMessage.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
+
+//                    EditMessageText editedMessage = new EditMessageText();
+//                    editedMessage.setChatId(chatId1);
+//                    editedMessage.setText(message.getText());
+//                    editedMessage.setMessageId(messageId);
+//                    editedMessage.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
+
                     userStatusService.setCurrentStatus(userId, Status.builder()
                             .mainStatus(MainStatus.EDIT)
                             .addStatus(AddStatus.NONE)
@@ -405,7 +409,21 @@ public class MedicineServiceImpl implements MedicineService {
                             .comparator(status.getComparator())
                             .build());
                     log.info("<---- выход из callbackQueryHandler() ---->");
-                    return editedMessage;
+//                    return editedMessage;
+                    return message;
+
+                case "MAIN_MENU_BUTTON":
+                    log.info("MAIN_MENU_BUTTON");
+                    userStatusService.setCurrentStatus(userId, Status.builder()
+                            .mainStatus(MainStatus.MAIN_MENU)
+                            .addStatus(AddStatus.NONE)
+                            .editStatus(EditStatus.NONE)
+                            .comparator(Comparator.comparing(Medicine::getName))
+//                            .medicine(new Medicine())
+                            .build());
+                    message.setText("Выходим в главное меню...");
+                    StaticClass.proceed = true;
+                    return message;
             }
         }
 
@@ -461,6 +479,19 @@ public class MedicineServiceImpl implements MedicineService {
 
         if (update.hasCallbackQuery()) {
             switch (update.getCallbackQuery().getData()) {
+                case "MAIN_MENU_BUTTON":
+                    log.info("MAIN_MENU_BUTTON");
+                    userStatusService.setCurrentStatus(userId, Status.builder()
+                            .mainStatus(MainStatus.MAIN_MENU)
+                            .addStatus(AddStatus.NONE)
+                            .editStatus(EditStatus.NONE)
+                            .comparator(Comparator.comparing(Medicine::getName))
+//                            .medicine(new Medicine())
+                            .build());
+                    message.setText("Выходим в главное меню...");
+                    StaticClass.proceed = true;
+                    return message;
+
                 case "CANCEL_BUTTON":
                     log.info("CANCEL_BUTTON");
                     userStatusService.resetStatus(userId);
@@ -482,9 +513,13 @@ public class MedicineServiceImpl implements MedicineService {
             log.debug("deleteMedByNumber(): Нашли лекарство {}", medicine);
             medicineRepository.deleteByNameAndDosageAndExpDate(medicine.getName(), medicine.getDosage(), medicine.getExpDate());
             deleteMedicinePhoto(medicine);
-            message.setText("Вы удалили лекарство:\n" + medicine.getName() + " - " + medicine.getDosage() + " - " + medicine.getQuantity() + " - " + medicine.getExpDate());
-            userStatusService.resetStatus(userId);
-            message.setReplyMarkup(new ReplyKeyboardRemove(true));
+            message.setText("Вы удалили:\n\n" +
+                    "Препарат..... " + medicine.getName()
+                    + "\nДозировка.. " + medicine.getDosage()
+                    + "\nКол-во.......... " + medicine.getQuantity()
+                    + "\nГоден до....... " + medicine.getTextExpDate());
+//            userStatusService.resetStatus(userId);
+            message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForMainMenu());
         } else {
             message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
 //            message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
@@ -501,10 +536,35 @@ public class MedicineServiceImpl implements MedicineService {
         Long userId = updateService.getUserId(update);
         String textFromChat = updateService.getTextFromMessage(update);
         Status status = userStatusService.getCurrentStatus(userId);
-        Medicine newMed;
 
         message.setChatId(updateService.getChatId(update));
         message.setText("Простите, не понял, начните с начала (в addMedicine)");
+
+        if (update.hasCallbackQuery()) {
+            switch (update.getCallbackQuery().getData()) {
+                case "MAIN_MENU_BUTTON":
+                    log.info("MAIN_MENU_BUTTON");
+                    userStatusService.setCurrentStatus(userId, Status.builder()
+                            .mainStatus(MainStatus.MAIN_MENU)
+                            .addStatus(AddStatus.NONE)
+                            .editStatus(EditStatus.NONE)
+                            .comparator(Comparator.comparing(Medicine::getName))
+//                            .medicine(new Medicine())
+                            .build());
+                    message.setText("Выходим в главное меню...");
+                    StaticClass.proceed = true;
+                    return message;
+
+                case "CANCEL_BUTTON":
+                    log.info("CANCEL_BUTTON");
+                    userStatusService.resetStatus(userId);
+                    message.setText("Отмена...");
+                    StaticClass.proceed = true;
+                    return message;
+            }
+        }
+
+        Medicine newMed;
 
         switch (status.getAddStatus()) {
             case NAME:
@@ -647,14 +707,28 @@ public class MedicineServiceImpl implements MedicineService {
 
                 if (update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("SKIP_BUTTON")) {
                     chatMessagesService.deleteMessagesFromChat(update);
-                    message.setText(String.format("Вы добавили %s в базу без фото", newMed.getName()));
+                    message.setText("Вы добавили:\n\n" +
+                            "Препарат..... " + newMed.getName()
+                            + "\nДозировка.. " + newMed.getDosage()
+                            + "\nКол-во.......... " + newMed.getQuantity()
+                            + "\nГоден до....... " + newMed.getTextExpDate()
+                            + "\nФото............. не прикреплено");
+                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForMainMenu());
+//                    message.setText(String.format("Вы добавили %s в базу без фото", newMed.getName()));
                 }
 
                 if (update.hasMessage() && update.getMessage().hasPhoto()) {
                     log.info("----> вход в hasPhoto() <----");
                     chatMessagesService.deleteMessagesFromChat(update);
                     setMedicinePhoto(update, newMed);
-                    message.setText(String.format("Вы добавили %s в базу с фото", newMed.getName()));
+                    message.setText("Вы добавили:\n\n" +
+                            "Препарат..... " + newMed.getName()
+                            + "\nДозировка.. " + newMed.getDosage()
+                            + "\nКол-во.......... " + newMed.getQuantity()
+                            + "\nГоден до....... " + newMed.getTextExpDate()
+                            + "\nФото............. прикреплено");
+                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForMainMenu());
+//                    message.setText(String.format("Вы добавили %s в базу с фото", newMed.getName()));
                     log.info("<---- выход из hasPhoto() ---->");
                 }
 
@@ -665,7 +739,7 @@ public class MedicineServiceImpl implements MedicineService {
                     message.setText(String.format("%s\n%s\n%s\n\nУже есть в базе!\nЕсли вы ходите изменить кол-во имеющегося лекарства, то выберите пункт меню ИЗМЕНИТЬ", newMed.getName(), newMed.getDosage(), newMed.getExpDate().toString()));
                 }
 
-                userStatusService.resetStatus(userId);
+//                userStatusService.resetStatus(userId);
                 break;
         }
         log.info("<---- выход из addMedicine() ---->");
