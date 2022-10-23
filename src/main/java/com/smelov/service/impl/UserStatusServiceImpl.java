@@ -7,7 +7,6 @@ import com.smelov.model.MainStatus;
 import com.smelov.model.Status;
 import com.smelov.service.UserStatusService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -26,15 +25,18 @@ public class UserStatusServiceImpl implements UserStatusService {
     @Override
     public Status getCurrentStatus(Long userId) {
         log.info("----> вход в getCurrentStatus() <----");
-        Status status = Status.builder()
+        Status status;
+        if (userStatusMap.containsKey(userId)) {
+            status = userStatusMap.get(userId);
+        } else {
+        status = Status.builder()
                 .mainStatus(MainStatus.MAIN_MENU)
                 .addStatus(AddStatus.NONE)
                 .editStatus(EditStatus.NONE)
                 .medicine(new Medicine())
                 .comparator(Comparator.comparing(Medicine::getName))
+                .messageIds(new HashSet<>())
                 .build();
-        if (userStatusMap.containsKey(userId)) {
-            status = userStatusMap.get(userId);
         }
         log.info("status: {}", status);
         log.info("<---- выход из getCurrentStatus() ---->");
@@ -60,6 +62,7 @@ public class UserStatusServiceImpl implements UserStatusService {
                 .editStatus(EditStatus.NONE)
                 .comparator(Comparator.comparing(Medicine::getName))
                 .medicine(new Medicine())
+                .messageIds(new HashSet<>())
                 .build();
         userStatusMap.put(userId, status);
         log.info("status на выходе для userId {}: {}", userId, status);

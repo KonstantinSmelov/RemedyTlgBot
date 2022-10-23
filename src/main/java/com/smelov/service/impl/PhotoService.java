@@ -28,7 +28,7 @@ public class PhotoService {
             SendPhoto photo = medicineService.getMedicinePhoto(medicine);
             photo.setChatId(updateService.getChatId(update));
             Message sended = remedyBot.execute(photo);
-            chatMessagesService.addNewIdToMessageIds(sended.getMessageId());
+            chatMessagesService.addNewIdToMessageIds(sended.getMessageId(), updateService.getUserId(update));
         }
     }
 }

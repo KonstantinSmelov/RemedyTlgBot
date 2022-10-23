@@ -5,19 +5,18 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Data
 @Builder
 public class Status {
 
-    private MainStatus mainStatus = MainStatus.NONE;
-    private EditStatus editStatus = EditStatus.NONE;
-    private AddStatus addStatus = AddStatus.NONE;
+    private MainStatus mainStatus;
+    private EditStatus editStatus;
+    private AddStatus addStatus;
     private Comparator<Medicine> comparator;
-    private Medicine medicine = new Medicine();
+    private Medicine medicine;
+    private Set<Integer> messageIds;
 
     @Override
     public String toString() {

@@ -19,8 +19,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -30,30 +28,31 @@ public class ChatMessagesService {
 
     private final UpdateService updateService;
     private final RemedyBot remedyBot;
-    private final Set<Integer> messageIds = new HashSet<>();
     private final UserStatusService userStatusService;
+
 
     @SneakyThrows
     public void deleteMessagesFromChat(Update update) {
         DeleteMessage deleteMessage = new DeleteMessage();
         Long chatId = updateService.getChatId(update);
+        Long userId = updateService.getUserId(update);
 
-        for (Integer messageId : messageIds) {
+        for (Integer messageId : userStatusService.getCurrentStatus(userId).getMessageIds()) {
             deleteMessage.setMessageId(messageId);
             deleteMessage.setChatId(chatId);
             System.out.print("Удаляем message/callback " + messageId + "... ");
             remedyBot.execute(deleteMessage);
             System.out.println("ОК");
         }
-        this.messageIds.clear();
+        this.userStatusService.getCurrentStatus(userId).getMessageIds().clear();
     }
 
-    public void addNewIdToMessageIds(Integer messageId) {
-        this.messageIds.add(messageId);
+    public void addNewIdToMessageIds(Integer messageId, Long userId) {
+        userStatusService.getCurrentStatus(userId).getMessageIds().add(messageId);
     }
 
-    public void clearMessageIds() {
-        this.messageIds.clear();
+    public void clearMessageIds(Long userId) {
+        userStatusService.getCurrentStatus(userId).getMessageIds().clear();
     }
 
     public SendMessage appendMsgToMsg (SendMessage firstMsg, SendMessage secondMsg) {
