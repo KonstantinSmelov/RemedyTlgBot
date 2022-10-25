@@ -15,7 +15,7 @@ public class TextMessageServiceImpl implements TextMessageService {
 
     @Override
     public String nameList(List<Medicine> meds) {
-        log.info("----> вход в nameList() <----");
+        log.debug("----> вход в nameList()");
         StringBuilder string = new StringBuilder();
         string.append("Препараты в наличии: \n\n");
         int x = 1;
@@ -28,18 +28,17 @@ public class TextMessageServiceImpl implements TextMessageService {
                     .append("\n");
         }
 
-        if(string.length() == 0) {
+        if (string.length() == 0) {
             string.append("ПУСТО");
-            log.info("<---- выход из nameList() ---->");
-            return string.toString();
         }
-        log.info("<---- выход из nameList() ---->");
+
+        log.debug("<---- выход из nameList(): {}", string);
         return string.toString();
     }
 
     @Override
     public String nameAndDosageList(List<Medicine> meds) {
-        log.info("----> вход в nameAndDosageList() <----");
+        log.debug("----> вход в nameAndDosageList()");
         StringBuilder string = new StringBuilder();
         int x = 1;
 
@@ -53,18 +52,17 @@ public class TextMessageServiceImpl implements TextMessageService {
                     .append("\n");
         }
 
-        if(string.length() == 0) {
+        if (string.length() == 0) {
             string.append("ПУСТО");
-            log.info("<---- выход из nameAndDosageList() ---->");
-            return string.toString();
         }
-        log.info("<---- выход из nameAndDosageList() ---->");
+
+        log.debug("<---- выход из nameAndDosageList(): {}", string);
         return string.toString();
     }
 
     @Override
     public String allInfoList(List<Medicine> meds) {
-        log.info("----> вход в allInfoList() <----");
+        log.debug("----> вход в allInfoList()");
         StringBuilder string = new StringBuilder();
 
         int x = 1;
@@ -82,11 +80,11 @@ public class TextMessageServiceImpl implements TextMessageService {
                     .append("\n");
         }
 
-        if(string.length() == 0) {
-            log.info("<---- выход из allInfoList() ---->");
-            return string.append("ПУСТО").toString();
+        if (string.length() == 0) {
+            string.append("ПУСТО");
         }
-        log.info("<---- выход из allInfoList() ---->");
+
+        log.debug("<---- выход из allInfoList(): {}", string);
         return string.toString();
     }
 }

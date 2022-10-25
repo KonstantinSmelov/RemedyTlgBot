@@ -11,47 +11,46 @@ public class UpdateServiceImpl implements UpdateService {
 
     @Override
     public Long getUserId(Update update) {
-        log.info("----> вход в getUserId() <----");
+        log.debug("----> вход в getUserId()");
         Long userId = null;
 
         if (update.hasMessage()) {
             userId = update.getMessage().getFrom().getId();
-            log.debug("getUserId(): userId из Message: {}", userId);
+            log.trace("getUserId(): userId из Message: {}", userId);
         } else if (update.hasCallbackQuery()) {
             userId = update.getCallbackQuery().getFrom().getId();
-            log.debug("getUserId(): userId из CallbackQuery: {}", userId);
+            log.trace("getUserId(): userId из CallbackQuery: {}", userId);
         }
-        log.info("<---- выход из getUserId() ---->");
+        log.debug("<---- возврат из getUserId(): {}", userId);
         return userId;
     }
 
     @Override
     public String getTextFromMessage(Update update) {
-        log.info("----> вход в getTextFromMessage() <----");
+        log.debug("----> вход в getTextFromMessage()");
 
         String msg = null;
 
         if (update.hasMessage()) {
             msg = update.getMessage().getText();
         }
-        log.info("<---- выход из getTextFromMessage() ---->");
+        log.debug("<---- возврат из getTextFromMessage(): {}", msg);
         return msg;
     }
 
     @Override
     public Long getChatId(Update update) {
-        log.info("----> вход в getChatId() <----");
+        log.debug("----> вход в getChatId()");
         Long chatId = null;
 
         if (update.hasMessage()) {
             chatId = update.getMessage().getChatId();
-            log.debug("getChatId(): chatId из Message: {}", chatId);
+            log.trace("getChatId(): chatId из Message: {}", chatId);
         } else if (update.hasCallbackQuery()) {
             chatId = update.getCallbackQuery().getMessage().getChatId();
-            log.debug("getChatId(): chatId из CallbackQuery: {}", chatId);
+            log.trace("getChatId(): chatId из CallbackQuery: {}", chatId);
         }
-        log.info("<---- выход из getChatId() ---->");
+        log.debug("<---- возврат из getChatId(): {}", chatId);
         return chatId;
     }
-
 }

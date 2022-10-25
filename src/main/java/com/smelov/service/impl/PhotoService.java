@@ -4,6 +4,7 @@ import com.smelov.bot.RemedyBot;
 import com.smelov.entity.Medicine;
 import com.smelov.service.MedicineService;
 import com.smelov.service.UpdateService;
+import com.smelov.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +22,20 @@ public class PhotoService {
     private final UpdateService updateService;
     private final RemedyBot remedyBot;
     private final ChatMessagesService chatMessagesService;
+    private final UserStatusService userStatusService;
 
     @SneakyThrows
     public void showPhotoIfExist(Update update, Medicine medicine) {
-        if(medicine != null && medicineService.getMedicinePhoto(medicine) != null) {
+        log.info("----> showPhotoIfExist(): {}", medicine);
+        if (medicine != null && medicineService.getMedicinePhoto(medicine) != null) {
             SendPhoto photo = medicineService.getMedicinePhoto(medicine);
             photo.setChatId(updateService.getChatId(update));
-            Message sended = remedyBot.execute(photo);
-            chatMessagesService.addNewIdToMessageIds(sended.getMessageId(), updateService.getUserId(update));
+            Message forDelete = remedyBot.execute(photo);
+            System.out.println(userStatusService.getCurrentStatus(updateService.getUserId(update)).getUserMessageIds());
+            chatMessagesService.addNewIdToMessageIds(forDelete.getMessageId(), updateService.getUserId(update));
+            log.info("<---- showPhotoIfExist(): фото найдено");
+        } else {
+            log.info("<---- showPhotoIfExist(): фото НЕ найдено");
         }
     }
 }

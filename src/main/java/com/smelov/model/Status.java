@@ -3,7 +3,6 @@ package com.smelov.model;
 import com.smelov.entity.Medicine;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.stereotype.Component;
 
 import java.util.*;
 
@@ -16,7 +15,7 @@ public class Status {
     private AddStatus addStatus;
     private Comparator<Medicine> comparator;
     private Medicine medicine;
-    private Set<Integer> messageIds;
+    private Set<Integer> userMessageIds;
 
     @Override
     public String toString() {

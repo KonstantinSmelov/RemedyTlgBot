@@ -1,65 +1,56 @@
 package com.smelov.service.impl;
 
 import com.smelov.bot.RemedyBot;
-import com.smelov.entity.Medicine;
-import com.smelov.keyboard.CustomInlineKeyboardMarkup;
-import com.smelov.model.AddStatus;
-import com.smelov.model.EditStatus;
-import com.smelov.model.MainStatus;
-import com.smelov.model.Status;
-import com.smelov.service.MedicineService;
-import com.smelov.service.TextMessageService;
-import com.smelov.service.UpdateService;
 import com.smelov.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
-
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ChatMessagesService {
 
-    private final UpdateService updateService;
     private final RemedyBot remedyBot;
     private final UserStatusService userStatusService;
 
 
     @SneakyThrows
-    public void deleteMessagesFromChat(Update update) {
+    public void deleteMessagesFromChat(Long chatId, Long userId) {
+        log.debug("----> вход в deleteMessagesFromChat() <----");
         DeleteMessage deleteMessage = new DeleteMessage();
-        Long chatId = updateService.getChatId(update);
-        Long userId = updateService.getUserId(update);
 
-        for (Integer messageId : userStatusService.getCurrentStatus(userId).getMessageIds()) {
+        for (Integer messageId : userStatusService.getCurrentStatus(userId).getUserMessageIds()) {
             deleteMessage.setMessageId(messageId);
             deleteMessage.setChatId(chatId);
-            System.out.print("Удаляем message/callback " + messageId + "... ");
+//            System.out.print("Удаляем message/callback " + messageId + "... ");
             remedyBot.execute(deleteMessage);
-            System.out.println("ОК");
+//            System.out.println("ОК");
         }
-        this.userStatusService.getCurrentStatus(userId).getMessageIds().clear();
+        this.userStatusService.getCurrentStatus(userId).getUserMessageIds().clear();
+        log.debug("<---- выход из deleteMessagesFromChat() ---->");
+
     }
 
     public void addNewIdToMessageIds(Integer messageId, Long userId) {
-        userStatusService.getCurrentStatus(userId).getMessageIds().add(messageId);
+        log.debug("----> вход в addNewIdToMessageIds() <----");
+        userStatusService.getCurrentStatus(userId).getUserMessageIds().add(messageId);
+        log.debug("<---- выход из addNewIdToMessageIds() ---->");
     }
 
     public void clearMessageIds(Long userId) {
-        userStatusService.getCurrentStatus(userId).getMessageIds().clear();
+        log.debug("----> вход в clearMessageIds() <----");
+        userStatusService.getCurrentStatus(userId).getUserMessageIds().clear();
+        log.debug("<---- выход из clearMessageIds() ---->");
     }
 
-    public SendMessage appendMsgToMsg (SendMessage firstMsg, SendMessage secondMsg) {
-        SendMessage finalMsg = new SendMessage();
-        finalMsg.setChatId(firstMsg.getChatId());
-        finalMsg.setText(firstMsg.getText() + "\n\n" + secondMsg.getText());
-        finalMsg.setReplyMarkup(secondMsg.getReplyMarkup());
-        return finalMsg;
-    }
+//    public SendMessage appendMsgToMsg (SendMessage firstMsg, SendMessage secondMsg) {
+//        SendMessage finalMsg = new SendMessage();
+//        finalMsg.setChatId(firstMsg.getChatId());
+//        finalMsg.setText(firstMsg.getText() + "\n\n" + secondMsg.getText());
+//        finalMsg.setReplyMarkup(secondMsg.getReplyMarkup());
+//        return finalMsg;
+//    }
 }
