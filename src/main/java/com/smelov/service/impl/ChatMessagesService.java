@@ -1,6 +1,7 @@
 package com.smelov.service.impl;
 
 import com.smelov.bot.RemedyBot;
+import com.smelov.model.Status;
 import com.smelov.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -19,31 +20,32 @@ public class ChatMessagesService {
 
     @SneakyThrows
     public void deleteMessagesFromChat(Long chatId, Long userId) {
-        log.debug("----> вход в deleteMessagesFromChat() <----");
+        log.debug("----> вход в deleteMessagesFromChat()");
         DeleteMessage deleteMessage = new DeleteMessage();
 
         for (Integer messageId : userStatusService.getCurrentStatus(userId).getUserMessageIds()) {
             deleteMessage.setMessageId(messageId);
             deleteMessage.setChatId(chatId);
-//            System.out.print("Удаляем message/callback " + messageId + "... ");
+            System.out.println("Удаляем message/callback " + messageId + "... ");
             remedyBot.execute(deleteMessage);
-//            System.out.println("ОК");
         }
         this.userStatusService.getCurrentStatus(userId).getUserMessageIds().clear();
-        log.debug("<---- выход из deleteMessagesFromChat() ---->");
+        log.debug("<---- выход из deleteMessagesFromChat()");
 
     }
 
-    public void addNewIdToMessageIds(Integer messageId, Long userId) {
-        log.debug("----> вход в addNewIdToMessageIds() <----");
-        userStatusService.getCurrentStatus(userId).getUserMessageIds().add(messageId);
-        log.debug("<---- выход из addNewIdToMessageIds() ---->");
+    public void addNewIdToMessageIds(Long userId, Integer messageId) {
+        log.debug("----> вход в addNewIdToMessageIds(): {} - {}", userId, messageId);
+        Status status = userStatusService.getCurrentStatus(userId);
+        status.getUserMessageIds().add(messageId);
+        userStatusService.changeCurrentStatus(userId, status);
+        log.debug("<---- выход из addNewIdToMessageIds()");
     }
 
     public void clearMessageIds(Long userId) {
-        log.debug("----> вход в clearMessageIds() <----");
+        log.debug("----> вход в clearMessageIds()");
         userStatusService.getCurrentStatus(userId).getUserMessageIds().clear();
-        log.debug("<---- выход из clearMessageIds() ---->");
+        log.debug("<---- выход из clearMessageIds()");
     }
 
 //    public SendMessage appendMsgToMsg (SendMessage firstMsg, SendMessage secondMsg) {

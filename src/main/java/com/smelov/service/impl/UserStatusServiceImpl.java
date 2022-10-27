@@ -28,7 +28,7 @@ public class UserStatusServiceImpl implements UserStatusService {
 
     @Override
     public Status getCurrentStatus(Long userId) {
-        log.debug("----> вход в getCurrentStatus()");
+        log.debug("----> вход в getCurrentStatus(): {}", userId);
         Status status;
         if (userStatusMap.containsKey(userId)) {
             status = userStatusMap.get(userId);

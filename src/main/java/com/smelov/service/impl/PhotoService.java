@@ -32,7 +32,7 @@ public class PhotoService {
             photo.setChatId(updateService.getChatId(update));
             Message forDelete = remedyBot.execute(photo);
             System.out.println(userStatusService.getCurrentStatus(updateService.getUserId(update)).getUserMessageIds());
-            chatMessagesService.addNewIdToMessageIds(forDelete.getMessageId(), updateService.getUserId(update));
+            chatMessagesService.addNewIdToMessageIds(updateService.getUserId(update), forDelete.getMessageId());
             log.info("<---- showPhotoIfExist(): фото найдено");
         } else {
             log.info("<---- showPhotoIfExist(): фото НЕ найдено");

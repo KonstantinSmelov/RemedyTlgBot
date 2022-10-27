@@ -55,9 +55,9 @@ public class UpdateReceivedHandler {
 
 
         if (update.hasMessage()) {
-            chatMessagesService.addNewIdToMessageIds(update.getMessage().getMessageId(), userId);
+            chatMessagesService.addNewIdToMessageIds(userId, update.getMessage().getMessageId());
         } else if (update.hasCallbackQuery()) {
-            chatMessagesService.addNewIdToMessageIds(update.getCallbackQuery().getMessage().getMessageId(), userId);
+            chatMessagesService.addNewIdToMessageIds(userId, update.getCallbackQuery().getMessage().getMessageId());
         }
 
         //Обнуление статуса и выход в гл. меню из любого статуса
@@ -103,7 +103,7 @@ public class UpdateReceivedHandler {
             System.out.println("*********UpdateReceivedHandler(), hasText() в виде команды /* найден ***************");
             sendMessage = messageTextHandler(update);
             Message forDelete = remedyBot.execute(sendMessage);
-            chatMessagesService.addNewIdToMessageIds(forDelete.getMessageId(), userId);
+            chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
             log.info("<===== выход из onUpdateReceived() =====>\n");
             return;
 
@@ -138,7 +138,7 @@ public class UpdateReceivedHandler {
                 StaticClass.proceed = false;
                 BotApiMethod<?> sendMessage1 = currentStatusHandler(update);
                 Message forDelete = (Message) remedyBot.execute(sendMessage1);
-                chatMessagesService.addNewIdToMessageIds(forDelete.getMessageId(), userId);
+                chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
                 log.info("<===== выход из onUpdateReceived()\n");
             }
             return;
@@ -146,7 +146,7 @@ public class UpdateReceivedHandler {
             System.out.println("*********UpdateReceivedHandler(), hasCallbackQuery() найден ***************");
             BotApiMethod<?> someBotApiMethod = callbackQueryHandler(update);
             Message forDelete = (Message) remedyBot.execute(someBotApiMethod);
-            chatMessagesService.addNewIdToMessageIds(forDelete.getMessageId(), userId);
+            chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
             log.info("<===== выход из onUpdateReceived()\n");
             return;
 
@@ -154,7 +154,7 @@ public class UpdateReceivedHandler {
             System.out.println("*********UpdateReceivedHandler(), hasText() без команды /* найден ***************");
             sendMessage = messageTextHandler(update);
             Message forDelete = remedyBot.execute(sendMessage);
-            chatMessagesService.addNewIdToMessageIds(forDelete.getMessageId(), userId);
+            chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
             log.info("<===== выход из onUpdateReceived()\n");
         }
     }

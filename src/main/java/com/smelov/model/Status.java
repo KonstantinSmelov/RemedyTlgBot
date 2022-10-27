@@ -22,8 +22,8 @@ public class Status {
         return "MainStatus: " + getMainStatus() +
                 "; AddStatus: " + getAddStatus() +
                 "; EditStatus: " + getEditStatus() +
-                "; Medicine: " +
-                ((medicine != null) ? medicine.getName() : "---");
+                "; Medicine: " + ((medicine != null) ? medicine.getName() : "---") +
+                "; MsgIds: " + userMessageIds;
     }
 
     @Override
