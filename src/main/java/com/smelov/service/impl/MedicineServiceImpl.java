@@ -224,12 +224,13 @@ public class MedicineServiceImpl implements MedicineService {
             case NONE:
                 log.info("case NONE");
 
-                if (medicine == null) {
+                if (medicine.getName() == null) {
                     medicine = getMedByNumber(textFromChat, status.getComparator());
                 }
 
                 if (medicine != null) {
                     chatMessagesService.deleteMessagesFromChat(chatId, userId);
+                    System.out.println(medicine.getName() + " / " + medicine.getExpDate());
                     status.setMedicine(medicine);
                     message.setText("Препарат..... " + medicine.getName()
                             + "\nДозировка.. " + medicine.getDosage()

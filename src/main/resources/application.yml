@@ -22,7 +22,7 @@ spring:
 
 logging:
   level:
-    com.smelov: info
+    com.smelov: debug
 
 bot:
   name:

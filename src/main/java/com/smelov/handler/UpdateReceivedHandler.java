@@ -265,12 +265,12 @@ public class UpdateReceivedHandler {
                 System.out.println("в case \"DETAIL_BUTTON\"" + userStatusService.getCurrentStatus(userId).getUserMessageIds());
                 userStatusService.changeCurrentStatus(userId,
                         Status.builder()
-                        .mainStatus(MainStatus.DETAIL)
-                        .addStatus(AddStatus.NONE)
-                        .editStatus(EditStatus.NONE)
-                        .comparator(status.getComparator())
+                                .mainStatus(MainStatus.DETAIL)
+                                .addStatus(AddStatus.NONE)
+                                .editStatus(EditStatus.NONE)
+                                .comparator(status.getComparator())
 //                        .userMessageIds(new HashSet<>())
-                        .build());
+                                .build());
                 System.out.println("в case \"DETAIL_BUTTON\"" + userStatusService.getCurrentStatus(userId).getUserMessageIds());
                 break;
 
