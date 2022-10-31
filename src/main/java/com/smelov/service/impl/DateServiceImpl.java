@@ -57,7 +57,7 @@ public class DateServiceImpl implements DateService {
 
         }
 
-        log.debug("<---- выход из StrToDate(): {}", output.get());
+        log.debug("<---- выход из StrToDate(): {}", output.isPresent() ? output.get() : "неправильный ввод даты");
         return output;
     }
 }

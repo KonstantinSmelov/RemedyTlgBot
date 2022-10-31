@@ -551,7 +551,6 @@ public class MedicineServiceImpl implements MedicineService {
                         .addStatus(AddStatus.DOSAGE)
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
-//                        .userMessageIds(new HashSet<>())
                         .build());
                 log.info("Блок case NAME:. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case NAME. Map содержит:\n{}", userStatusService.getStatusMap());
@@ -567,7 +566,6 @@ public class MedicineServiceImpl implements MedicineService {
                             .addStatus(AddStatus.QUANTITY)
                             .editStatus(EditStatus.NONE)
                             .medicine(newMed)
-//                            .userMessageIds(new HashSet<>())
                             .build());
                     newMed.setDosage("---");
                     break;
@@ -580,7 +578,6 @@ public class MedicineServiceImpl implements MedicineService {
                         .addStatus(AddStatus.DOSAGE_TYPE)
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
-//                        .userMessageIds(new HashSet<>())
                         .build());
                 log.info("Блок case DOSAGE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case DOSAGE. Map содержит:\n{}", userStatusService.getStatusMap());
@@ -611,7 +608,6 @@ public class MedicineServiceImpl implements MedicineService {
                         .addStatus(AddStatus.QUANTITY)
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
-//                        .userMessageIds(new HashSet<>())
                         .build());
                 log.info("Блок case DOSAGE_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case DOSAGE_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
@@ -628,7 +624,6 @@ public class MedicineServiceImpl implements MedicineService {
                         .addStatus(AddStatus.QUANTITY_TYPE)
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
-//                        .userMessageIds(new HashSet<>())
                         .build());
                 log.info("Блок case QUANTITY. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case QUANTITY. Map содержит:\n{}", userStatusService.getStatusMap());
@@ -651,13 +646,12 @@ public class MedicineServiceImpl implements MedicineService {
                 } else {
                     newMed.setQuantity(newMed.getQuantity() + " шт.");
                 }
-                message.setText("Введите срок годности. Год и месяц через пробел:");
+                message.setText("Введите ГОД и МЕСЯЦ через пробел, для указания срока годности:");
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.ADD)
                         .addStatus(AddStatus.EXP_DATE)
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
-//                        .userMessageIds(new HashSet<>())
                         .build());
                 log.info("Блок case QUANTITY_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case QUANTITY_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
@@ -675,7 +669,6 @@ public class MedicineServiceImpl implements MedicineService {
                             .addStatus(AddStatus.PHOTO)
                             .editStatus(EditStatus.NONE)
                             .medicine(newMed)
-//                            .userMessageIds(new HashSet<>())
                             .build());
                     message.setText("Добавьте фотографию препарата или нажмите ОТМЕНА, если добавлять фото не нужно:");
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForSkip());
@@ -701,7 +694,6 @@ public class MedicineServiceImpl implements MedicineService {
                             + "\nГоден до....... " + newMed.getTextExpDate()
                             + "\nФото............. не прикреплено");
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForMainMenu());
-//                    message.setText(String.format("Вы добавили %s в базу без фото", newMed.getName()));
                 }
 
                 if (update.hasMessage() && update.getMessage().hasPhoto()) {
@@ -715,7 +707,6 @@ public class MedicineServiceImpl implements MedicineService {
                             + "\nГоден до....... " + newMed.getTextExpDate()
                             + "\nФото............. прикреплено");
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForMainMenu());
-//                    message.setText(String.format("Вы добавили %s в базу с фото", newMed.getName()));
                     log.info("<---- выход из hasPhoto() ---->");
                 }
 
