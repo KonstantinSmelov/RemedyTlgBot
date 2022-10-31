@@ -195,7 +195,7 @@ public class UpdateReceivedHandler {
                         .editStatus(EditStatus.NONE)
                         .comparator(Comparator.comparing(Medicine::getName))
                         .medicine(new Medicine())
-                        .userMessageIds(new HashSet<>())
+//                        .userMessageIds(new HashSet<>())
                         .build());
                 message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
@@ -216,6 +216,7 @@ public class UpdateReceivedHandler {
         Status status = userStatusService.getCurrentStatus(updateService.getUserId(update));
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);
+        Long chatId = updateService.getChatId(update);
 
         message.setChatId(updateService.getChatId(update));
 
@@ -229,7 +230,7 @@ public class UpdateReceivedHandler {
                         .addStatus(AddStatus.NONE)
                         .editStatus(EditStatus.NONE)
                         .comparator(status.getComparator())
-                        .userMessageIds(new HashSet<>())
+//                        .userMessageIds(new HashSet<>())
                         .build());
                 break;
 
@@ -242,7 +243,7 @@ public class UpdateReceivedHandler {
                         .addStatus(AddStatus.NONE)
                         .editStatus(EditStatus.NONE)
                         .comparator(status.getComparator())
-                        .userMessageIds(new HashSet<>())
+//                        .userMessageIds(new HashSet<>())
                         .build());
                 break;
 
@@ -255,8 +256,10 @@ public class UpdateReceivedHandler {
                         .addStatus(AddStatus.NAME)
                         .editStatus(EditStatus.NONE)
                         .comparator(status.getComparator())
-                        .userMessageIds(new HashSet<>())
+//                        .userMessageIds(new HashSet<>())
                         .build());
+                chatMessagesService.deleteMessagesFromChat(chatId, userId);
+
                 break;
 
             case "DETAIL_BUTTON":
@@ -327,7 +330,6 @@ public class UpdateReceivedHandler {
 
             case ADD:
                 log.info("case ADD");
-                chatMessagesService.deleteMessagesFromChat(chatId, userId);
                 sendMessage = medicineService.addMedicine(update);
                 log.info("<---- выход из currentStatusHandler()");
                 log.info("<---- выход из onUpdateReceived()");

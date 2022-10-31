@@ -438,11 +438,12 @@ public class MedicineServiceImpl implements MedicineService {
     public SendMessage deleteMedByNumber(Update update) {
         log.info("----> вход в deleteMedByNumber()");
         SendMessage message = new SendMessage();
-        message.setChatId(updateService.getChatId(update));
         Long userId = updateService.getUserId(update);
         Long chatId = updateService.getChatId(update);
+        message.setChatId(chatId);
         String textFromChat = updateService.getTextFromMessage(update);
         Status currentStatus = userStatusService.getCurrentStatus(userId);
+        Medicine medicine = currentStatus.getMedicine();
 
         if (update.hasCallbackQuery()) {
             switch (update.getCallbackQuery().getData()) {
@@ -472,12 +473,8 @@ public class MedicineServiceImpl implements MedicineService {
             }
         }
 
-        Medicine medicine;
-
-        if (currentStatus.getMedicine() == null) {
+        if (medicine.getName() == null) {
             medicine = getMedByNumber(textFromChat, currentStatus.getComparator());
-        } else {
-            medicine = currentStatus.getMedicine();
         }
 
         if (medicine != null) {
@@ -516,6 +513,7 @@ public class MedicineServiceImpl implements MedicineService {
             switch (update.getCallbackQuery().getData()) {
                 case "MAIN_MENU_BUTTON":
                     log.info("case MAIN_MENU_BUTTON");
+                    chatMessagesService.deleteMessagesFromChat(chatId, userId);
                     userStatusService.changeCurrentStatus(userId, Status.builder()
                             .mainStatus(MainStatus.MAIN_MENU)
                             .addStatus(AddStatus.NONE)
@@ -530,6 +528,7 @@ public class MedicineServiceImpl implements MedicineService {
 
                 case "CANCEL_BUTTON":
                     log.info("case CANCEL_BUTTON");
+                    chatMessagesService.deleteMessagesFromChat(chatId, userId);
                     userStatusService.resetStatus(chatId, userId);
                     message.setText("Отмена...");
                     StaticClass.proceed = true;
@@ -552,7 +551,7 @@ public class MedicineServiceImpl implements MedicineService {
                         .addStatus(AddStatus.DOSAGE)
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
-                        .userMessageIds(new HashSet<>())
+//                        .userMessageIds(new HashSet<>())
                         .build());
                 log.info("Блок case NAME:. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case NAME. Map содержит:\n{}", userStatusService.getStatusMap());
@@ -568,7 +567,7 @@ public class MedicineServiceImpl implements MedicineService {
                             .addStatus(AddStatus.QUANTITY)
                             .editStatus(EditStatus.NONE)
                             .medicine(newMed)
-                            .userMessageIds(new HashSet<>())
+//                            .userMessageIds(new HashSet<>())
                             .build());
                     newMed.setDosage("---");
                     break;
@@ -581,7 +580,7 @@ public class MedicineServiceImpl implements MedicineService {
                         .addStatus(AddStatus.DOSAGE_TYPE)
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
-                        .userMessageIds(new HashSet<>())
+//                        .userMessageIds(new HashSet<>())
                         .build());
                 log.info("Блок case DOSAGE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case DOSAGE. Map содержит:\n{}", userStatusService.getStatusMap());
@@ -612,7 +611,7 @@ public class MedicineServiceImpl implements MedicineService {
                         .addStatus(AddStatus.QUANTITY)
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
-                        .userMessageIds(new HashSet<>())
+//                        .userMessageIds(new HashSet<>())
                         .build());
                 log.info("Блок case DOSAGE_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case DOSAGE_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
@@ -629,7 +628,7 @@ public class MedicineServiceImpl implements MedicineService {
                         .addStatus(AddStatus.QUANTITY_TYPE)
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
-                        .userMessageIds(new HashSet<>())
+//                        .userMessageIds(new HashSet<>())
                         .build());
                 log.info("Блок case QUANTITY. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case QUANTITY. Map содержит:\n{}", userStatusService.getStatusMap());
@@ -658,7 +657,7 @@ public class MedicineServiceImpl implements MedicineService {
                         .addStatus(AddStatus.EXP_DATE)
                         .editStatus(EditStatus.NONE)
                         .medicine(newMed)
-                        .userMessageIds(new HashSet<>())
+//                        .userMessageIds(new HashSet<>())
                         .build());
                 log.info("Блок case QUANTITY_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
                 log.debug("Блок case QUANTITY_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
@@ -676,7 +675,7 @@ public class MedicineServiceImpl implements MedicineService {
                             .addStatus(AddStatus.PHOTO)
                             .editStatus(EditStatus.NONE)
                             .medicine(newMed)
-                            .userMessageIds(new HashSet<>())
+//                            .userMessageIds(new HashSet<>())
                             .build());
                     message.setText("Добавьте фотографию препарата или нажмите ОТМЕНА, если добавлять фото не нужно:");
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForSkip());
