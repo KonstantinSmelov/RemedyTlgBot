@@ -24,6 +24,7 @@ public class CustomInlineKeyboardMarkup {
         InlineKeyboardButton exp_date_Button = new InlineKeyboardButton();
         InlineKeyboardButton quantity_Button = new InlineKeyboardButton();
         InlineKeyboardButton photo_Button = new InlineKeyboardButton();
+        InlineKeyboardButton mainMenu_Button = new InlineKeyboardButton();
 
         name_Button.setText("НАЗВАНИЕ");
         name_Button.setCallbackData("EDIT_NAME_BUTTON");
@@ -35,12 +36,15 @@ public class CustomInlineKeyboardMarkup {
         quantity_Button.setCallbackData("EDIT_QUANTITY_BUTTON");
         photo_Button.setText("ФОТО");
         photo_Button.setCallbackData("EDIT_PHOTO_BUTTON");
+        mainMenu_Button.setText("ВЫХОД");
+        mainMenu_Button.setCallbackData("MAIN_MENU_BUTTON");
 
         buttonsRow1.add(name_Button);
         buttonsRow1.add(dosage_Button);
         buttonsRow2.add(exp_date_Button);
         buttonsRow2.add(quantity_Button);
         buttonsRow3.add(photo_Button);
+        buttonsRow3.add(mainMenu_Button);
 
         rowList.add(buttonsRow1);
         rowList.add(buttonsRow2);
@@ -54,17 +58,25 @@ public class CustomInlineKeyboardMarkup {
         inlineKeyboardMarkup = new InlineKeyboardMarkup();
         rowList = new ArrayList<>();
         List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow2 = new ArrayList<>();
         InlineKeyboardButton edit_Button = new InlineKeyboardButton();
         InlineKeyboardButton del_Button = new InlineKeyboardButton();
+        InlineKeyboardButton photo_Button = new InlineKeyboardButton();
+        InlineKeyboardButton mainMenu_Button = new InlineKeyboardButton();
 
         edit_Button.setText("ИЗМЕНИТЬ");
         edit_Button.setCallbackData("EDIT_FROM_DETAIL_BUTTON");
         del_Button.setText("УДАЛИТЬ");
         del_Button.setCallbackData("DEL_FROM_DETAIL_BUTTON");
+        mainMenu_Button.setText("ВЫХОД");
+        mainMenu_Button.setCallbackData("MAIN_MENU_BUTTON");
 
         buttonsRow1.add(edit_Button);
         buttonsRow1.add(del_Button);
+        buttonsRow2.add(mainMenu_Button);
+
         rowList.add(buttonsRow1);
+        rowList.add(buttonsRow2);
         inlineKeyboardMarkup.setKeyboard(rowList);
 
         return inlineKeyboardMarkup;
@@ -75,6 +87,7 @@ public class CustomInlineKeyboardMarkup {
         rowList = new ArrayList<>();
         List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
         List<InlineKeyboardButton> buttonsRow2 = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow3 = new ArrayList<>();
         InlineKeyboardButton edit_Button = new InlineKeyboardButton();
         InlineKeyboardButton del_Button = new InlineKeyboardButton();
         InlineKeyboardButton add_Button = new InlineKeyboardButton();
@@ -95,6 +108,22 @@ public class CustomInlineKeyboardMarkup {
         buttonsRow2.add(detail_Button);
         rowList.add(buttonsRow1);
         rowList.add(buttonsRow2);
+        inlineKeyboardMarkup.setKeyboard(rowList);
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup inlineKeyboardForMainMenu() {
+        inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        rowList = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
+        InlineKeyboardButton mainMenu_Button = new InlineKeyboardButton();
+
+        mainMenu_Button.setText("ГЛАВНОЕ МЕНЮ");
+        mainMenu_Button.setCallbackData("MAIN_MENU_BUTTON");
+
+        buttonsRow1.add(mainMenu_Button);
+        rowList.add(buttonsRow1);
         inlineKeyboardMarkup.setKeyboard(rowList);
 
         return inlineKeyboardMarkup;
@@ -126,6 +155,22 @@ public class CustomInlineKeyboardMarkup {
         cancel_Button.setCallbackData("CANCEL_BUTTON");
 
         buttonsRow1.add(cancel_Button);
+        rowList.add(buttonsRow1);
+        inlineKeyboardMarkup.setKeyboard(rowList);
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup inlineKeyboardForReturn() {
+        inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        rowList = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
+        InlineKeyboardButton return_Button = new InlineKeyboardButton();
+
+        return_Button.setText("ПРЕДЫДУЩЕЕ МЕНЮ");
+        return_Button.setCallbackData("RETURN_BUTTON");
+
+        buttonsRow1.add(return_Button);
         rowList.add(buttonsRow1);
         inlineKeyboardMarkup.setKeyboard(rowList);
 
@@ -172,6 +217,22 @@ public class CustomInlineKeyboardMarkup {
 
         buttonsRow1.add(pillsButton);
         buttonsRow1.add(percentButton);
+        rowList.add(buttonsRow1);
+        inlineKeyboardMarkup.setKeyboard(rowList);
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup inlineKeyboardForOk() {
+        inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        rowList = new ArrayList<>();
+        List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
+        InlineKeyboardButton ok_Button = new InlineKeyboardButton();
+
+        ok_Button.setText("ПОНЯЛ");
+        ok_Button.setCallbackData("OK_BUTTON");
+
+        buttonsRow1.add(ok_Button);
         rowList.add(buttonsRow1);
         inlineKeyboardMarkup.setKeyboard(rowList);
 

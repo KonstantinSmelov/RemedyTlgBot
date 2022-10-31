@@ -1,7 +1,7 @@
 package com.smelov.bot;
 
 import com.smelov.config.BotConfig;
-import com.smelov.service.impl.UpdateHandlerImpl;
+import com.smelov.handler.UpdateReceivedHandler;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -20,17 +20,16 @@ import java.util.List;
 public class RemedyBot extends TelegramLongPollingBot {
 
     private final BotConfig botConfig;
-    private final UpdateHandlerImpl updateHandler;
+    private final UpdateReceivedHandler updateHandler;
 
     @SneakyThrows
-    public RemedyBot(BotConfig botConfig, @Lazy UpdateHandlerImpl updateHandler) {
+    public RemedyBot(BotConfig botConfig, @Lazy UpdateReceivedHandler updateHandler) {
         this.botConfig = botConfig;
         this.updateHandler = updateHandler;
 
         List<BotCommand> commandList = new ArrayList<>();
         commandList.add(new BotCommand("/by_name", "Список лекарств в аптечке"));
-//        commandList.add(new BotCommand("/by_exp_date", "Список по сроку годности"));
-        commandList.add(new BotCommand("/exit", "Выход в главное меню"));
+//        commandList.add(new BotCommand("/exit", "Выход в главное меню"));
         execute(new SetMyCommands(commandList, new BotCommandScopeDefault(), null));
     }
 

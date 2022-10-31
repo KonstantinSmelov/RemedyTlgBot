@@ -14,8 +14,8 @@ public class DateServiceImpl implements DateService {
     @Override
     public Optional<Date> StrToDate(String inputDate) {
 
-        log.info("----> вход в StrToDate() <----");
-        log.info("StrToDate(): получена строка: {}", inputDate);
+        log.debug("----> вход в StrToDate()");
+        log.trace("StrToDate(): получена строка: {}", inputDate);
         Optional<Date> output = Optional.empty();
 
         String regEx1 = "^\\d{4}\\s0[1-9]$";
@@ -52,13 +52,12 @@ public class DateServiceImpl implements DateService {
                 year.insert(0, "20");
             }
 
-            log.info("StrToDate(): распарсено: Год: {}, месяц: {}", year, month);
+            log.trace("StrToDate(): распарсено: Год: {}, месяц: {}", year, month);
             output = Optional.ofNullable(Date.valueOf(year.toString() + "-" + month.toString() + "-" + "01"));
 
-            log.info("StrToDate(): преобразовано в Date: {}", output.get());
         }
 
-        log.info("<---- выход из StrToDate() ---->");
+        log.debug("<---- выход из StrToDate(): {}", output.get());
         return output;
     }
 }

@@ -7,6 +7,9 @@ target/
 mvnw.cmd
 mvnw
 src/main/resources/photo
+/src/main/resources/application-pass.yml
+/src/main/rezerv/
+
 
 ### STS ###
 .apt_generated
@@ -35,4 +38,3 @@ build/
 
 ### VS Code ###
 .vscode/
-/src/main/resources/application-pass.yml
