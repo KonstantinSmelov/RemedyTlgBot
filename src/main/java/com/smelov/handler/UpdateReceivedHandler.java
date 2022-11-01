@@ -60,47 +60,13 @@ public class UpdateReceivedHandler {
             chatMessagesService.addNewIdToMessageIds(userId, update.getCallbackQuery().getMessage().getMessageId());
         }
 
-        //Обнуление статуса и выход в гл. меню из любого статуса
-//        if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("/exit")
-//                ||
-//                (userStatusService.getCurrentStatus(userId).getMainStatus() != MainStatus.MAIN_MENU
-//                        && update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("CANCEL_BUTTON")
-//                )) {
-//            log.info("Возвращаемся в гл. меню, обнуляем статус");
-//            chatMessagesService.deleteMessagesFromChat(update);
-//            userStatusService.resetStatus(userId);
-//
-//            userStatusService.setCurrentStatus(userId, Status.builder()
-//                    .mainStatus(MainStatus.NONE)
-//                    .addStatus(AddStatus.NONE)
-//                    .editStatus(EditStatus.NONE)
-//                    .comparator(Comparator.comparing(Medicine::getName))
-//                    .medicine(new Medicine())
-//                    .build());
-//            sendMessage.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
-//            sendMessage.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
-//
-////            message.setReplyMarkup(new ReplyKeyboardRemove(true));
-////            message.setText(EmojiParser.parseToUnicode("Вышли в начальное состояние.\nНажмите кнопку меню\n" +
-////                    "   :arrow_down:"));
-//            log.info("<===== выход из onUpdateReceived() =====>\n");
-//            remedyBot.execute(sendMessage);
-//            chatMessagesService.clearMessageIds();
-//            return;
-//        }
-
         if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().equals("Del")) {
             chatMessagesService.deleteMessagesFromChat(chatId, userId);
             return;
         }
 
         //Обработка текстовых команд верхнего уровня (гл. меню)
-        System.out.println("*********UpdateReceivedHandler(), проверка hasText() или Status или hasCallbackQuery() ***********");
-        System.out.println("********* status:" + userStatusService.getCurrentStatus(userId) + "************");
-        System.out.println("********* getCallbackQuery: " + (update.hasCallbackQuery() ? update.getCallbackQuery().getData() : "null") + "**********");
-
         if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().matches("^/.*")) {
-            System.out.println("*********UpdateReceivedHandler(), hasText() в виде команды /* найден ***************");
             sendMessage = messageTextHandler(update);
             Message forDelete = remedyBot.execute(sendMessage);
             chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
@@ -112,7 +78,6 @@ public class UpdateReceivedHandler {
                 !update.hasCallbackQuery()
                 &&
                 !update.hasMessage()) {
-            System.out.println("*********UpdateReceivedHandler(), MainStatus == MAIN_MENU ***************");
             chatMessagesService.deleteMessagesFromChat(chatId, userId);
             userStatusService.changeCurrentStatus(userId, Status.builder()
                     .mainStatus(MainStatus.NONE)
@@ -120,7 +85,7 @@ public class UpdateReceivedHandler {
                     .editStatus(EditStatus.NONE)
                     .comparator(Comparator.comparing(Medicine::getName))
                     .medicine(new Medicine())
-                    .userMessageIds(new HashSet<>())
+                    .userMessageIds(new LinkedHashSet<>())
                     .build());
             sendMessage.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
             sendMessage.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
@@ -130,11 +95,8 @@ public class UpdateReceivedHandler {
             return;
 
         } else if (userStatusService.getCurrentStatus(userId).getMainStatus() != MainStatus.MAIN_MENU) {
-            System.out.println("*********UpdateReceivedHandler(), MainStatus != MAIN_MENU до while ***************");
 
             while (StaticClass.proceed) {
-                System.out.println("*********UpdateReceivedHandler(), MainStatus != MAIN_MENU в while ***************");
-                System.out.println("***** " + userStatusService.getCurrentStatus(userId) + "*****");
                 StaticClass.proceed = false;
                 BotApiMethod<?> sendMessage1 = currentStatusHandler(update);
                 Message forDelete = (Message) remedyBot.execute(sendMessage1);
@@ -143,7 +105,6 @@ public class UpdateReceivedHandler {
             }
             return;
         } else if (update.hasCallbackQuery()) {
-            System.out.println("*********UpdateReceivedHandler(), hasCallbackQuery() найден ***************");
             BotApiMethod<?> someBotApiMethod = callbackQueryHandler(update);
             Message forDelete = (Message) remedyBot.execute(someBotApiMethod);
             chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
@@ -151,7 +112,6 @@ public class UpdateReceivedHandler {
             return;
 
         } else {
-            System.out.println("*********UpdateReceivedHandler(), hasText() без команды /* найден ***************");
             sendMessage = messageTextHandler(update);
             Message forDelete = remedyBot.execute(sendMessage);
             chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
@@ -195,7 +155,6 @@ public class UpdateReceivedHandler {
                         .editStatus(EditStatus.NONE)
                         .comparator(Comparator.comparing(Medicine::getName))
                         .medicine(new Medicine())
-//                        .userMessageIds(new HashSet<>())
                         .build());
                 message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
@@ -230,7 +189,6 @@ public class UpdateReceivedHandler {
                         .addStatus(AddStatus.NONE)
                         .editStatus(EditStatus.NONE)
                         .comparator(status.getComparator())
-//                        .userMessageIds(new HashSet<>())
                         .build());
                 break;
 
@@ -243,7 +201,6 @@ public class UpdateReceivedHandler {
                         .addStatus(AddStatus.NONE)
                         .editStatus(EditStatus.NONE)
                         .comparator(status.getComparator())
-//                        .userMessageIds(new HashSet<>())
                         .build());
                 break;
 
@@ -256,7 +213,6 @@ public class UpdateReceivedHandler {
                         .addStatus(AddStatus.NAME)
                         .editStatus(EditStatus.NONE)
                         .comparator(status.getComparator())
-//                        .userMessageIds(new HashSet<>())
                         .build());
                 chatMessagesService.deleteMessagesFromChat(chatId, userId);
 
@@ -272,7 +228,6 @@ public class UpdateReceivedHandler {
                                 .addStatus(AddStatus.NONE)
                                 .editStatus(EditStatus.NONE)
                                 .comparator(status.getComparator())
-//                        .userMessageIds(new HashSet<>())
                                 .build());
                 System.out.println("в case \"DETAIL_BUTTON\"" + userStatusService.getCurrentStatus(userId).getUserMessageIds());
                 break;
@@ -305,7 +260,7 @@ public class UpdateReceivedHandler {
                         .editStatus(EditStatus.NONE)
                         .comparator(Comparator.comparing(Medicine::getName))
                         .medicine(new Medicine())
-                        .userMessageIds(new HashSet<>())
+                        .userMessageIds(new LinkedHashSet<>())
                         .build());
                 sendMessage.setChatId(updateService.getChatId(update));
                 sendMessage.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));

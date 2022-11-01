@@ -27,10 +27,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 
 import java.sql.Date;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -455,7 +452,7 @@ public class MedicineServiceImpl implements MedicineService {
                             .addStatus(AddStatus.NONE)
                             .editStatus(EditStatus.NONE)
                             .comparator(Comparator.comparing(Medicine::getName))
-                            .userMessageIds(new HashSet<>())
+                            .userMessageIds(new LinkedHashSet<>())
                             .build());
                     message.setText("Выходим в главное меню...");
                     StaticClass.proceed = true;
@@ -519,7 +516,7 @@ public class MedicineServiceImpl implements MedicineService {
                             .addStatus(AddStatus.NONE)
                             .editStatus(EditStatus.NONE)
                             .comparator(Comparator.comparing(Medicine::getName))
-                            .userMessageIds(new HashSet<>())
+                            .userMessageIds(new LinkedHashSet<>())
                             .build());
                     message.setText("Выходим в главное меню...");
                     StaticClass.proceed = true;
@@ -586,6 +583,13 @@ public class MedicineServiceImpl implements MedicineService {
             case DOSAGE_TYPE:
                 log.info("case DOSAGE_TYPE");
                 newMed = status.getMedicine();
+
+                if(update.hasMessage()) {
+                    message.setText("В чём измерять дозировку лекарства?");
+                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDosage());
+                    chatMessagesService.deleteLastMessagesFromChat(chatId, userId, 2);
+                }
+
                 if (update.hasCallbackQuery()) {
                     switch (update.getCallbackQuery().getData()) {
                         case "MG_BUTTON":
@@ -601,16 +605,16 @@ public class MedicineServiceImpl implements MedicineService {
                             newMed.setDosage(newMed.getDosage() + " ед.");
                             break;
                     }
+                    message.setText("Введите количество лекарства:");
+                    userStatusService.changeCurrentStatus(userId, Status.builder()
+                            .mainStatus(MainStatus.ADD)
+                            .addStatus(AddStatus.QUANTITY)
+                            .editStatus(EditStatus.NONE)
+                            .medicine(newMed)
+                            .build());
+                    log.info("Блок case DOSAGE_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
+                    log.debug("Блок case DOSAGE_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
                 }
-                message.setText("Введите количество лекарства:");
-                userStatusService.changeCurrentStatus(userId, Status.builder()
-                        .mainStatus(MainStatus.ADD)
-                        .addStatus(AddStatus.QUANTITY)
-                        .editStatus(EditStatus.NONE)
-                        .medicine(newMed)
-                        .build());
-                log.info("Блок case DOSAGE_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
-                log.debug("Блок case DOSAGE_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
                 break;
 
             case QUANTITY:
@@ -632,6 +636,13 @@ public class MedicineServiceImpl implements MedicineService {
             case QUANTITY_TYPE:
                 log.info("case QUANTITY_TYPE");
                 newMed = status.getMedicine();
+
+                if(update.hasMessage()) {
+                    message.setText("В чём измерять кол-во лекарства?");
+                    message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForQuantity());
+                    chatMessagesService.deleteLastMessagesFromChat(chatId, userId, 2);
+                }
+
                 if (update.hasCallbackQuery()) {
                     switch (update.getCallbackQuery().getData()) {
                         case "PILLS_BUTTON":
@@ -643,18 +654,17 @@ public class MedicineServiceImpl implements MedicineService {
                             newMed.setQuantity(newMed.getQuantity() + " %");
                             break;
                     }
-                } else {
-                    newMed.setQuantity(newMed.getQuantity() + " шт.");
+                    message.setText("Введите ГОД и МЕСЯЦ через пробел, для указания срока годности:");
+                    userStatusService.changeCurrentStatus(userId, Status.builder()
+                            .mainStatus(MainStatus.ADD)
+                            .addStatus(AddStatus.EXP_DATE)
+                            .editStatus(EditStatus.NONE)
+                            .medicine(newMed)
+                            .build());
+                    log.info("Блок case QUANTITY_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
+                    log.debug("Блок case QUANTITY_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
                 }
-                message.setText("Введите ГОД и МЕСЯЦ через пробел, для указания срока годности:");
-                userStatusService.changeCurrentStatus(userId, Status.builder()
-                        .mainStatus(MainStatus.ADD)
-                        .addStatus(AddStatus.EXP_DATE)
-                        .editStatus(EditStatus.NONE)
-                        .medicine(newMed)
-                        .build());
-                log.info("Блок case QUANTITY_TYPE. Добавили в Map: key:{}  value:{}", userId, status);
-                log.debug("Блок case QUANTITY_TYPE. Map содержит:\n{}", userStatusService.getStatusMap());
+
                 break;
 
             case EXP_DATE:
