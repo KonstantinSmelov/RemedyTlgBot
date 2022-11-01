@@ -584,7 +584,7 @@ public class MedicineServiceImpl implements MedicineService {
                 log.info("case DOSAGE_TYPE");
                 newMed = status.getMedicine();
 
-                if(update.hasMessage()) {
+                if (update.hasMessage()) {
                     message.setText("В чём измерять дозировку лекарства?");
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDosage());
                     chatMessagesService.deleteLastMessagesFromChat(chatId, userId, 2);
@@ -637,7 +637,7 @@ public class MedicineServiceImpl implements MedicineService {
                 log.info("case QUANTITY_TYPE");
                 newMed = status.getMedicine();
 
-                if(update.hasMessage()) {
+                if (update.hasMessage()) {
                     message.setText("В чём измерять кол-во лекарства?");
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForQuantity());
                     chatMessagesService.deleteLastMessagesFromChat(chatId, userId, 2);
