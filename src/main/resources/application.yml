@@ -24,6 +24,10 @@ logging:
   level:
     com.smelov: debug
 
+server:
+  port: 5000
+
 bot:
   name:
   token:
+  webhook:
