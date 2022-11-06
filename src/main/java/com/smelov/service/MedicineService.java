@@ -11,11 +11,9 @@ import java.util.List;
 
 public interface MedicineService {
     List<Medicine> getAllMeds(Comparator<Medicine> comparator);
-//    boolean edit(Medicine medToEdit, Medicine storedMed);
     SendMessage addMedicine(Update update);
     SendMessage deleteMedByNumber(Update update);
     SendMessage editMedByNumber(Update update);
     BotApiMethod<?> getMedDetails(Update update);
-//    Medicine getMedByNumber(String medicineNumberFromUpdateText, Comparator<Medicine> comparator);
     SendPhoto getMedicinePhoto(Medicine medicine);
 }

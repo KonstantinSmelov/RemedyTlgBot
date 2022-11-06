@@ -43,7 +43,7 @@ public class UpdateReceivedHandler {
     @SneakyThrows
     public void onUpdateReceived(Update update) {
         log.info("=====> вход в onUpdateReceived()");
-        log.debug("Map статусов {}", userStatusService.getStatusMap());
+        log.info("Map статусов {}", userStatusService.getStatusMap());
 
         StaticClass.proceed = true;
 

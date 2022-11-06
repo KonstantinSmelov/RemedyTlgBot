@@ -11,6 +11,7 @@ import com.smelov.model.MainStatus;
 import com.smelov.model.Status;
 import com.smelov.service.DateService;
 import com.smelov.service.MedicineService;
+import com.smelov.service.TextMessageService;
 import com.smelov.service.UpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -25,6 +26,7 @@ import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.sql.Date;
 import java.util.*;
@@ -43,6 +45,7 @@ public class MedicineServiceImpl implements MedicineService {
     private final DateService dateService;
     private final RemedyBot remedyBot;
     private final ChatMessagesService chatMessagesService;
+    private final TextMessageService textMessageService;
 
     @Override
     public List<Medicine> getAllMeds(Comparator<Medicine> comparator) {
@@ -236,6 +239,7 @@ public class MedicineServiceImpl implements MedicineService {
                             + "\n\nЧто меняем?");
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
                 } else {
+                    chatMessagesService.showMedsNameList(chatId, userId, textMessageService.nameList(getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
                     message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
                 }
                 break;
@@ -486,6 +490,7 @@ public class MedicineServiceImpl implements MedicineService {
 //            userStatusService.resetStatus(userId);
             message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForMainMenu());
         } else {
+            chatMessagesService.showMedsNameList(chatId, userId, textMessageService.nameList(getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
             message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
 //            message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
         }
