@@ -209,7 +209,7 @@ public class MedicineServiceImpl implements MedicineService {
                     log.info("<---- выход из editMedByNumber()");
                     return message;
 
-                case "case CANCEL_BUTTON":
+                case "CANCEL_BUTTON":
                     log.info("CANCEL_BUTTON");
                     chatMessagesService.deleteMessagesFromChat(chatId, userId);
                     userStatusService.resetStatus(chatId, userId);
@@ -240,7 +240,7 @@ public class MedicineServiceImpl implements MedicineService {
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
                 } else {
                     chatMessagesService.showMedsNameList(chatId, userId, textMessageService.nameList(getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
-                    message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
+                    message.setText(String.format("В базе нет лекарства с порядковым номером [%s].\nВведите корректный номер для внесения изменений:", textFromChat));
                 }
                 break;
 
@@ -491,7 +491,7 @@ public class MedicineServiceImpl implements MedicineService {
             message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForMainMenu());
         } else {
             chatMessagesService.showMedsNameList(chatId, userId, textMessageService.nameList(getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
-            message.setText(String.format("В базе нет лекарства с порядковым номером %s\nВведите корректный номер:", textFromChat));
+            message.setText(String.format("В базе нет лекарства с порядковым номером [%s].\nВведите корректный номер для удаления:", textFromChat));
 //            message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
         }
 
@@ -756,7 +756,8 @@ public class MedicineServiceImpl implements MedicineService {
         }
 
         if (medicine == null) {
-            message.setText(String.format("В базе нет лекарства с порядковым номером [%s]\nВведите корректный номер:", textFromChat));
+            chatMessagesService.showMedsNameList(chatId, userId, textMessageService.nameList(getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
+            message.setText(String.format("В базе нет лекарства с порядковым номером [%s].\nВведите корректный номер для показа деталей:", textFromChat));
             return message;
         }
 

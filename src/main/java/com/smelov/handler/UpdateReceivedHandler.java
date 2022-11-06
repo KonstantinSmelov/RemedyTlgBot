@@ -161,9 +161,19 @@ public class UpdateReceivedHandler {
                 break;
 
             default:
-//                message.setText("Простите, не понял в messageTextHandler");
-                message.setText(EmojiParser.parseToUnicode("Простите, не понял.\nНажмите Меню -> Список лекарств\n   :arrow_down:"));
+                chatMessagesService.deleteMessagesFromChat(chatId, userId);
+                userStatusService.changeCurrentStatus(userId, Status.builder()
+                        .mainStatus(MainStatus.MAIN_MENU)
+                        .addStatus(AddStatus.NONE)
+                        .editStatus(EditStatus.NONE)
+                        .comparator(Comparator.comparing(Medicine::getName))
+                        .medicine(new Medicine())
+                        .build());
+                message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
+                message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
+//                message.setText(EmojiParser.parseToUnicode("Простите, не понял.\nНажмите Меню -> Список лекарств\n   :arrow_down:"));
                 break;
+
         }
         log.info("<---- выход из messageTextHandler()");
         return message;
