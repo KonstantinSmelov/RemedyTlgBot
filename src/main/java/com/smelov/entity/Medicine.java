@@ -42,6 +42,7 @@ public class Medicine {
     }
 
     public String getTextExpDate() {
-        return this.getExpDate().toString().substring(0, getExpDate().toString().length() - 3);
+//        return this.getExpDate().toString().substring(0, getExpDate().toString().length() - 3);
+        return this.getExpDate().toLocalDate().getYear() + "-" + this.getExpDate().toLocalDate().getMonth().getValue();
     }
 }

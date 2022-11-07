@@ -34,12 +34,14 @@ public class TextMessageServiceImpl implements TextMessageService {
                 string
                         .append("<del>")
                         .append(med.getName())
-                        .append("</del>");
+                        .append("</del>")
+                        .append(" <i>[истёк срок годн.]</i>");
+
             } else if (now.plus(1, ChronoUnit.MONTHS).compareTo(med.getExpDate().toLocalDate()) == 0
                     || now.compareTo(med.getExpDate().toLocalDate()) == 0) {
                 string
                         .append(med.getName())
-                        .append(String.format("  <i> [годен до: %d-%d)</i]", med.getExpDate().toLocalDate().getYear(), med.getExpDate().toLocalDate().getMonth().getValue()));
+                        .append(String.format("  <i> [годен до: %s]</i>", med.getTextExpDate()));
             } else {
                 string.append(med.getName());
             }
