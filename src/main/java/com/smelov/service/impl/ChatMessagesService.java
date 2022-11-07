@@ -26,8 +26,6 @@ public class ChatMessagesService {
 
     private final RemedyBot remedyBot;
     private final UserStatusService userStatusService;
-    private final UpdateService updateService;
-
 
     @SneakyThrows
     public void deleteMessagesFromChat(Long chatId, Long userId) {
@@ -78,6 +76,7 @@ public class ChatMessagesService {
 
     public void showMedsNameList(Long chatId, Long userId, String medsListToChat) {
         SendMessage sendMessage = new SendMessage();
+        sendMessage.enableHtml(true);
         sendMessage.setText(medsListToChat);
         sendMessage.setChatId(chatId);
         try {

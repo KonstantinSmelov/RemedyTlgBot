@@ -5,6 +5,8 @@ import com.smelov.service.TextMessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 
@@ -17,15 +19,31 @@ public class TextMessageServiceImpl implements TextMessageService {
     public String nameList(List<Medicine> meds) {
         log.debug("----> вход в nameList()");
         StringBuilder string = new StringBuilder();
-        string.append("Препараты в наличии: \n\n");
+        string.append("<b>Препараты в наличии:</b> \n\n");
         int x = 1;
 
         for (Medicine med : meds) {
             string
+                    .append("<b>")
                     .append(x++)
-                    .append(" - ")
-                    .append(med.getName())
-                    .append("\n");
+                    .append("</b>")
+                    .append(" - ");
+
+            if (0 < LocalDate.now().compareTo(med.getExpDate().toLocalDate())) {
+                string
+                        .append("<del>")
+                        .append(med.getName())
+                        .append("</del>");
+            } else if (0 < LocalDate.now().minus(1, ChronoUnit.MONTHS).compareTo(med.getExpDate().toLocalDate())) {
+                string
+                        .append("<del>")
+                        .append(med.getName())
+                        .append("</del>");
+            } else {
+                string.append(med.getName());
+            }
+
+            string.append("\n");
         }
 
         if (string.length() == 0) {

@@ -26,7 +26,6 @@ import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.sql.Date;
 import java.util.*;
@@ -37,6 +36,44 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 public class MedicineServiceImpl implements MedicineService {
+
+    public final String CHANGE_TO = "Заменить [%s] на:";
+    public final String CHANGE_TO_FOR_DATE = "Заменить [%s] на (введите ГОД и МЕСЯЦ через пробел):";
+    public final String NOT_APPLY_FOR_THIS_MEDICINE = "Для данного препарата дозировка не применяется";
+    public final String PHOTO_NOT_ASSIGNED = "Фото для [%s] ранее не было назначено!\nСделайте фото:";
+    public final String TAKE_A_PHOTO = "Сделайте новое фото для [%s]:";
+    public final String SET_NUMBER_FOR_EDIT = "Введите порядковый номер лекарства для редактирования:";
+    public final String CANCEL = "Отмена...";
+    public final String RETURN = "Возврат...";
+    public final String CHANGE = "%s изменено на %s";
+    public final String RETURN_TO_MAIN_MENU = "Выходим в главное меню...";
+    public final String NOT_EXIST_INTO_DB_FOR_CHANGE = "В базе нет лекарства с порядковым номером [%s].\nВведите корректный номер для внесения изменений:";
+    public final String NAME_IS_NOT_CHANGED = "Название НЕ изменено";
+    public final String DOSAGE_IS_CHANGED = "Дозировка изменена";
+    public final String DOSAGE_IS_NOT_CHANGED = "Дозировка НЕ изменена";
+    public final String QTY_IS_CHANGED = "Количество изменено";
+    public final String QTY_IS_NOT_CHANGED = "Количество НЕ изменено";
+    public final String DATE_IS_CHANGED = "Срок годности изменён";
+    public final String PHOTO_IS_CHANGED = "Фото изменено";
+    public final String DATE_IS_NOT_CHANGED = "Срок годности НЕ изменён";
+    public final String SET_CORRECT_YEAR_AND_MONTH = "Введите ГОД и МЕСЯЦ через пробел";
+    public final String SET_DOSAGE = "Введите дозировку лекарства:";
+    public final String SET_QTY = "Введите количество лекарства:";
+    public final String HOW_TO_MEASURE_DOSAGE = "В чём измерять дозировку лекарства?";
+    public final String MG = " мг.";
+    public final String ML = " мл.";
+    public final String PCS = " ед.";
+    public final String PCT = " %";
+    public final String HOW_TO_MEASURE_QTY = "В чём измерять кол-во лекарства?";
+    public final String NOT_EXIST_INTO_DB_FOR_DELETE = "В базе нет лекарства с порядковым номером [%s].\nВведите корректный номер для удаления:";
+    public final String DO_NOT_UNDERSTAND_ADD_MEDICINE = "Простите, не понял в addMedicine";
+    public final String TAKE_A_PHOTO_OR_CANCEL = "Добавьте фотографию препарата или нажмите ОТМЕНА, если добавлять фото не нужно:";
+    public final String SET_YEAR_AND_MONTH = "Введите ГОД и МЕСЯЦ через пробел";
+    public final String NOT_EXIST_INTO_DB_FOR_DETAIL = "В базе нет лекарства с порядковым номером [%s].\nВведите корректный номер для показа деталей:";
+    public final String ALREADY_EXIST_IN_DB = "%s\n%s\n%s\n\nУже есть в базе!\nЕсли вы ходите изменить кол-во имеющегося лекарства, то выберите пункт меню ИЗМЕНИТЬ";
+
+    public final String PATH_FOR_PHOTO = "./src/main/resources/photo/";
+    public final String FILE_EXTENSION = ".jpg";
 
     private final MedicineRepository medicineRepository;
     private final UserStatusServiceImpl userStatusService;
@@ -76,7 +113,7 @@ public class MedicineServiceImpl implements MedicineService {
             switch (update.getCallbackQuery().getData()) {
                 case "EDIT_NAME_BUTTON":
                     log.info("case EDIT_NAME_BUTTON");
-                    message.setText(String.format("Заменить [%s] на:", medicine.getName()));
+                    message.setText(String.format(CHANGE_TO, medicine.getName()));
                     userStatusService.changeCurrentStatus(userId, Status.builder()
                             .mainStatus(MainStatus.EDIT)
                             .addStatus(AddStatus.NONE)
@@ -91,7 +128,7 @@ public class MedicineServiceImpl implements MedicineService {
                     log.info("case EDIT_DOSAGE_BUTTON");
                     message.setReplyMarkup(new ReplyKeyboardRemove(true));
                     if (extractDataWithoutUnits(medicine.getDosage()).equals("---")) {
-                        message.setText("Для данного препарата дозировка не применяется");
+                        message.setText(NOT_APPLY_FOR_THIS_MEDICINE);
                         userStatusService.changeCurrentStatus(userId, Status.builder()
                                 .mainStatus(MainStatus.EDIT)
                                 .addStatus(AddStatus.NONE)
@@ -100,7 +137,7 @@ public class MedicineServiceImpl implements MedicineService {
                                 .medicine(medicine)
                                 .build());
                     } else {
-                        message.setText(String.format("Заменить [%s] на:", extractDataWithoutUnits(medicine.getDosage())));
+                        message.setText(String.format(CHANGE_TO, extractDataWithoutUnits(medicine.getDosage())));
                         userStatusService.changeCurrentStatus(userId, Status.builder()
                                 .mainStatus(MainStatus.EDIT)
                                 .addStatus(AddStatus.NONE)
@@ -116,7 +153,7 @@ public class MedicineServiceImpl implements MedicineService {
                 case "EDIT_QUANTITY_BUTTON":
                     log.info("case EDIT_QUANTITY_BUTTON");
                     message.setReplyMarkup(new ReplyKeyboardRemove(true));
-                    message.setText(String.format("Заменить [%s] на:", extractDataWithoutUnits(medicine.getQuantity())));
+                    message.setText(String.format(CHANGE_TO, extractDataWithoutUnits(medicine.getQuantity())));
                     userStatusService.changeCurrentStatus(userId, Status.builder()
                             .mainStatus(MainStatus.EDIT)
                             .addStatus(AddStatus.NONE)
@@ -130,7 +167,7 @@ public class MedicineServiceImpl implements MedicineService {
                 case "EDIT_EXP_DATE_BUTTON":
                     log.info("case EDIT_EXP_DATE_BUTTON");
                     message.setReplyMarkup(new ReplyKeyboardRemove(true));
-                    message.setText(String.format("Заменить [%s] на (введите год и месяц через пробел):", medicine.getTextExpDate()));
+                    message.setText(String.format(CHANGE_TO_FOR_DATE, medicine.getTextExpDate()));
                     userStatusService.changeCurrentStatus(userId, Status.builder()
                             .mainStatus(MainStatus.EDIT)
                             .addStatus(AddStatus.NONE)
@@ -147,12 +184,12 @@ public class MedicineServiceImpl implements MedicineService {
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                     SendPhoto photo = getMedicinePhoto(medicine);
                     if ((photo == null)) {
-                        message.setText(String.format("Фото для [%s] ранее не было назначено!\nСделайте фото:", medicine.getName() +
+                        message.setText(String.format(PHOTO_NOT_ASSIGNED, medicine.getName() +
                                 ((medicine.getDosage().equals("---"))
                                         ? ""
                                         : (" - " + medicine.getDosage()))));
                     } else {
-                        message.setText(String.format("Сделайте новое фото для [%s]:", medicine.getName() +
+                        message.setText(String.format(TAKE_A_PHOTO, medicine.getName() +
                                 ((medicine.getDosage().equals("---"))
                                         ? ""
                                         : (" - " + medicine.getDosage()))));
@@ -169,7 +206,7 @@ public class MedicineServiceImpl implements MedicineService {
 
                 case "EDIT_BUTTON":
                     log.info("case EDIT_BUTTON");
-                    message.setText("Введите порядковый номер лекарства для редактирования:");
+                    message.setText(SET_NUMBER_FOR_EDIT);
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                     userStatusService.changeCurrentStatus(userId, Status.builder()
                             .mainStatus(MainStatus.EDIT)
@@ -187,9 +224,8 @@ public class MedicineServiceImpl implements MedicineService {
                             .addStatus(AddStatus.NONE)
                             .editStatus(EditStatus.NONE)
                             .comparator(Comparator.comparing(Medicine::getName))
-//                            .medicine(new Medicine())
                             .build());
-                    message.setText("Выходим в главное меню...");
+                    message.setText(RETURN_TO_MAIN_MENU);
                     StaticClass.proceed = true;
                     log.info("<---- выход из editMedByNumber()");
                     return message;
@@ -203,7 +239,7 @@ public class MedicineServiceImpl implements MedicineService {
                             .comparator(Comparator.comparing(Medicine::getName))
                             .medicine(userStatusService.getCurrentStatus(userId).getMedicine())
                             .build());
-                    message.setText("Возврат...");
+                    message.setText(RETURN);
                     StaticClass.proceed = true;
                     update.getCallbackQuery().setData("");
                     log.info("<---- выход из editMedByNumber()");
@@ -213,7 +249,7 @@ public class MedicineServiceImpl implements MedicineService {
                     log.info("CANCEL_BUTTON");
                     chatMessagesService.deleteMessagesFromChat(chatId, userId);
                     userStatusService.resetStatus(chatId, userId);
-                    message.setText("Отмена...");
+                    message.setText(CANCEL);
                     StaticClass.proceed = true;
                     log.info("<---- выход из editMedByNumber()");
                     return message;
@@ -240,7 +276,7 @@ public class MedicineServiceImpl implements MedicineService {
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
                 } else {
                     chatMessagesService.showMedsNameList(chatId, userId, textMessageService.nameList(getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
-                    message.setText(String.format("В базе нет лекарства с порядковым номером [%s].\nВведите корректный номер для внесения изменений:", textFromChat));
+                    message.setText(String.format(NOT_EXIST_INTO_DB_FOR_CHANGE, textFromChat));
                 }
                 break;
 
@@ -252,9 +288,9 @@ public class MedicineServiceImpl implements MedicineService {
                     chatMessagesService.deleteMessagesFromChat(chatId, userId);
                     userStatusService.resetStatus(chatId, userId);
                     renamePhotoFile(medicine, medToEdit);
-                    message.setText(String.format("%s изменено на %s", medicine.getName(), medToEdit.getName()));
+                    message.setText(String.format(CHANGE, medicine.getName(), medToEdit.getName()));
                 } else {
-                    message.setText("Название НЕ изменено");
+                    message.setText(NAME_IS_NOT_CHANGED);
                 }
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.EDIT)
@@ -274,9 +310,9 @@ public class MedicineServiceImpl implements MedicineService {
                     renamePhotoFile(medicine, medToEdit);
                     chatMessagesService.deleteMessagesFromChat(chatId, userId);
                     userStatusService.resetStatus(chatId, userId);
-                    message.setText("Дозировка изменена");
+                    message.setText(DOSAGE_IS_CHANGED);
                 } else {
-                    message.setText("Дозировка НЕ изменена");
+                    message.setText(DOSAGE_IS_NOT_CHANGED);
                 }
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.EDIT)
@@ -295,10 +331,10 @@ public class MedicineServiceImpl implements MedicineService {
                 if (edit(medToEdit, medicine)) {
                     chatMessagesService.deleteMessagesFromChat(chatId, userId);
                     userStatusService.resetStatus(chatId, userId);
-                    message.setText("Количество изменено");
+                    message.setText(QTY_IS_CHANGED);
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForMainMenu());
                 } else {
-                    message.setText("Количество НЕ изменено");
+                    message.setText(QTY_IS_NOT_CHANGED);
                 }
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.EDIT)
@@ -319,12 +355,12 @@ public class MedicineServiceImpl implements MedicineService {
                     if (edit(medToEdit, medicine)) {
                         chatMessagesService.deleteMessagesFromChat(chatId, userId);
                         userStatusService.resetStatus(chatId, userId);
-                        message.setText("Срок годности изменён");
+                        message.setText(DATE_IS_CHANGED);
                     } else {
-                        message.setText("Срок годности НЕ изменён");
+                        message.setText(DATE_IS_NOT_CHANGED);
                     }
                 } else {
-                    message.setText("Введите ГОД и МЕСЯЦ через пробел");
+                    message.setText(SET_CORRECT_YEAR_AND_MONTH);
                 }
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.EDIT)
@@ -344,7 +380,7 @@ public class MedicineServiceImpl implements MedicineService {
 
                 chatMessagesService.deleteMessagesFromChat(chatId, userId);
                 userStatusService.resetStatus(chatId, userId);
-                message.setText("Фото изменено");
+                message.setText(PHOTO_IS_CHANGED);
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.EDIT)
                         .addStatus(AddStatus.NONE)
@@ -377,19 +413,10 @@ public class MedicineServiceImpl implements MedicineService {
 
                 case "EDIT_FROM_DETAIL_BUTTON":
                     log.info("case EDIT_FROM_DETAIL_BUTTON");
-//                    Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
-//                    Long chatId1 = updateService.getChatId(update);
 
                     chatMessagesService.deleteMessagesFromChat(chatId, userId);
                     message = getDetailsByNumber(update);
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
-
-
-//                    EditMessageText editedMessage = new EditMessageText();
-//                    editedMessage.setChatId(chatId1);
-//                    editedMessage.setText(message.getText());
-//                    editedMessage.setMessageId(messageId);
-//                    editedMessage.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForEdit());
 
                     userStatusService.changeCurrentStatus(userId, Status.builder()
                             .mainStatus(MainStatus.EDIT)
@@ -398,7 +425,6 @@ public class MedicineServiceImpl implements MedicineService {
                             .medicine(status.getMedicine())
                             .comparator(status.getComparator())
                             .build());
-//                    return editedMessage;
                     return message;
 
                 case "MAIN_MENU_BUTTON":
@@ -408,9 +434,8 @@ public class MedicineServiceImpl implements MedicineService {
                             .addStatus(AddStatus.NONE)
                             .editStatus(EditStatus.NONE)
                             .comparator(Comparator.comparing(Medicine::getName))
-//                            .medicine(new Medicine())
                             .build());
-                    message.setText("Выходим в главное меню...");
+                    message.setText(RETURN_TO_MAIN_MENU);
                     StaticClass.proceed = true;
                     return message;
             }
@@ -424,7 +449,7 @@ public class MedicineServiceImpl implements MedicineService {
     public SendPhoto getMedicinePhoto(Medicine medicine) {
         log.debug("----> вход в getMedicinePhoto()");
         SendPhoto photo = null;
-        java.io.File file = new java.io.File("./src/main/resources/photo/" + medicine.getName() + "_" + medicine.getDosage() + ".jpg");
+        java.io.File file = new java.io.File(PATH_FOR_PHOTO + medicine.getName() + "_" + medicine.getDosage() + FILE_EXTENSION);
         if (file.exists()) {
             photo = new SendPhoto();
             InputFile inputFile = new InputFile();
@@ -458,7 +483,7 @@ public class MedicineServiceImpl implements MedicineService {
                             .comparator(Comparator.comparing(Medicine::getName))
                             .userMessageIds(new LinkedHashSet<>())
                             .build());
-                    message.setText("Выходим в главное меню...");
+                    message.setText(RETURN_TO_MAIN_MENU);
                     StaticClass.proceed = true;
                     log.info("<---- выход из deleteMedByNumber()");
                     return message;
@@ -487,12 +512,10 @@ public class MedicineServiceImpl implements MedicineService {
                     + "\nДозировка.. " + medicine.getDosage()
                     + "\nКол-во.......... " + medicine.getQuantity()
                     + "\nГоден до....... " + medicine.getTextExpDate());
-//            userStatusService.resetStatus(userId);
             message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForMainMenu());
         } else {
             chatMessagesService.showMedsNameList(chatId, userId, textMessageService.nameList(getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
-            message.setText(String.format("В базе нет лекарства с порядковым номером [%s].\nВведите корректный номер для удаления:", textFromChat));
-//            message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
+            message.setText(String.format(NOT_EXIST_INTO_DB_FOR_DELETE, textFromChat));
         }
 
         log.info("<---- выход из deleteMedByNumber()");
@@ -509,7 +532,7 @@ public class MedicineServiceImpl implements MedicineService {
         Status status = userStatusService.getCurrentStatus(userId);
 
         message.setChatId(updateService.getChatId(update));
-        message.setText("Простите, не понял, начните с начала (в addMedicine)");
+        message.setText(DO_NOT_UNDERSTAND_ADD_MEDICINE);
 
         if (update.hasCallbackQuery()) {
             switch (update.getCallbackQuery().getData()) {
@@ -523,7 +546,7 @@ public class MedicineServiceImpl implements MedicineService {
                             .comparator(Comparator.comparing(Medicine::getName))
                             .userMessageIds(new LinkedHashSet<>())
                             .build());
-                    message.setText("Выходим в главное меню...");
+                    message.setText(RETURN_TO_MAIN_MENU);
                     StaticClass.proceed = true;
                     log.info("<---- выход из addMedicine()");
                     return message;
@@ -532,7 +555,7 @@ public class MedicineServiceImpl implements MedicineService {
                     log.info("case CANCEL_BUTTON");
                     chatMessagesService.deleteMessagesFromChat(chatId, userId);
                     userStatusService.resetStatus(chatId, userId);
-                    message.setText("Отмена...");
+                    message.setText(CANCEL);
                     StaticClass.proceed = true;
                     log.info("<---- выход из addMedicine()");
                     return message;
@@ -546,7 +569,7 @@ public class MedicineServiceImpl implements MedicineService {
                 log.info("case NAME");
                 newMed = new Medicine();
                 newMed.setName(textFromChat);
-                message.setText("Введите дозировку лекарства:");
+                message.setText(SET_DOSAGE);
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForSkip());
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.ADD)
@@ -562,7 +585,7 @@ public class MedicineServiceImpl implements MedicineService {
                 log.info("case DOSAGE");
                 newMed = status.getMedicine();
                 if (update.hasCallbackQuery() && update.getCallbackQuery().getData().equals("SKIP_BUTTON")) {
-                    message.setText("Введите количество лекарства:");
+                    message.setText(SET_QTY);
                     userStatusService.changeCurrentStatus(userId, Status.builder()
                             .mainStatus(MainStatus.ADD)
                             .addStatus(AddStatus.QUANTITY)
@@ -573,7 +596,7 @@ public class MedicineServiceImpl implements MedicineService {
                     break;
                 }
                 newMed.setDosage(textFromChat);
-                message.setText("В чём измерять дозировку лекарства?");
+                message.setText(HOW_TO_MEASURE_DOSAGE);
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDosage());
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.ADD)
@@ -590,7 +613,7 @@ public class MedicineServiceImpl implements MedicineService {
                 newMed = status.getMedicine();
 
                 if (update.hasMessage()) {
-                    message.setText("В чём измерять дозировку лекарства?");
+                    message.setText(HOW_TO_MEASURE_DOSAGE);
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDosage());
                     chatMessagesService.deleteLastMessagesFromChat(chatId, userId, 2);
                 }
@@ -599,15 +622,15 @@ public class MedicineServiceImpl implements MedicineService {
                     switch (update.getCallbackQuery().getData()) {
                         case "MG_BUTTON":
                             log.info("MG_BUTTON");
-                            newMed.setDosage(newMed.getDosage() + " мг.");
+                            newMed.setDosage(newMed.getDosage() + MG);
                             break;
                         case "ML_BUTTON":
                             log.info("ML_BUTTON");
-                            newMed.setDosage(newMed.getDosage() + " мл.");
+                            newMed.setDosage(newMed.getDosage() + ML);
                             break;
                         case "SMT_BUTTON":
                             log.info("SMT_BUTTON");
-                            newMed.setDosage(newMed.getDosage() + " ед.");
+                            newMed.setDosage(newMed.getDosage() + PCS);
                             break;
                     }
                     message.setText("Введите количество лекарства:");
@@ -626,7 +649,7 @@ public class MedicineServiceImpl implements MedicineService {
                 log.info("case QUANTITY");
                 newMed = status.getMedicine();
                 newMed.setQuantity(textFromChat);
-                message.setText("В чём измерять кол-во лекарства?");
+                message.setText(HOW_TO_MEASURE_QTY);
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForQuantity());
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.ADD)
@@ -643,7 +666,7 @@ public class MedicineServiceImpl implements MedicineService {
                 newMed = status.getMedicine();
 
                 if (update.hasMessage()) {
-                    message.setText("В чём измерять кол-во лекарства?");
+                    message.setText(HOW_TO_MEASURE_QTY);
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForQuantity());
                     chatMessagesService.deleteLastMessagesFromChat(chatId, userId, 2);
                 }
@@ -652,11 +675,11 @@ public class MedicineServiceImpl implements MedicineService {
                     switch (update.getCallbackQuery().getData()) {
                         case "PILLS_BUTTON":
                             log.info("PILLS_BUTTON");
-                            newMed.setQuantity(newMed.getQuantity() + " шт.");
+                            newMed.setQuantity(newMed.getQuantity() + PCS);
                             break;
                         case "PERCENT_BUTTON":
                             log.info("PERCENT_BUTTON");
-                            newMed.setQuantity(newMed.getQuantity() + " %");
+                            newMed.setQuantity(newMed.getQuantity() + PCT);
                             break;
                     }
                     message.setText("Введите ГОД и МЕСЯЦ через пробел, для указания срока годности:");
@@ -685,10 +708,10 @@ public class MedicineServiceImpl implements MedicineService {
                             .editStatus(EditStatus.NONE)
                             .medicine(newMed)
                             .build());
-                    message.setText("Добавьте фотографию препарата или нажмите ОТМЕНА, если добавлять фото не нужно:");
+                    message.setText(TAKE_A_PHOTO_OR_CANCEL);
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForSkip());
                 } else {
-                    message.setText("Введите ГОД и МЕСЯЦ через пробел");
+                    message.setText(SET_YEAR_AND_MONTH);
                     log.debug("Status при неверном вводе даты {}", status);
                 }
                 log.info("Блок case EXP_DATE. Добавили в Map: key:{}  value:{}", userId, status);
@@ -729,10 +752,8 @@ public class MedicineServiceImpl implements MedicineService {
                     medicineRepository.save(newMed);
                     log.info("В базу сохранено лекарство: {}", newMed);
                 } else {
-                    message.setText(String.format("%s\n%s\n%s\n\nУже есть в базе!\nЕсли вы ходите изменить кол-во имеющегося лекарства, то выберите пункт меню ИЗМЕНИТЬ", newMed.getName(), newMed.getDosage(), newMed.getExpDate().toString()));
                 }
-
-//                userStatusService.resetStatus(userId);
+                message.setText(String.format(ALREADY_EXIST_IN_DB, newMed.getName(), newMed.getDosage(), newMed.getExpDate().toString()));
                 break;
         }
         log.info("<---- выход из addMedicine()");
@@ -757,7 +778,7 @@ public class MedicineServiceImpl implements MedicineService {
 
         if (medicine == null) {
             chatMessagesService.showMedsNameList(chatId, userId, textMessageService.nameList(getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
-            message.setText(String.format("В базе нет лекарства с порядковым номером [%s].\nВведите корректный номер для показа деталей:", textFromChat));
+            message.setText(String.format(NOT_EXIST_INTO_DB_FOR_DETAIL, textFromChat));
             return message;
         }
 
@@ -843,16 +864,16 @@ public class MedicineServiceImpl implements MedicineService {
         GetFile getFile = new GetFile();
         getFile.setFileId(update.getMessage().getPhoto().get(3).getFileId());
         File file = remedyBot.execute(getFile);
-        remedyBot.downloadFile(file, new java.io.File("./src/main/resources/photo/" + medicine.getName() + "_" + medicine.getDosage() + ".jpg"));
+        remedyBot.downloadFile(file, new java.io.File( PATH_FOR_PHOTO+ medicine.getName() + "_" + medicine.getDosage() + FILE_EXTENSION));
     }
 
     private void deleteMedicinePhoto(Medicine medicine) {
-        java.io.File fileToDel = new java.io.File("./src/main/resources/photo/" + medicine.getName() + "_" + medicine.getDosage() + ".jpg");
+        java.io.File fileToDel = new java.io.File(PATH_FOR_PHOTO + medicine.getName() + "_" + medicine.getDosage() + FILE_EXTENSION);
         fileToDel.delete();
     }
 
     private void renamePhotoFile(Medicine medBefore, Medicine medAfter) {
-        java.io.File file = new java.io.File("./src/main/resources/photo/" + medBefore.getName() + "_" + medBefore.getDosage() + ".jpg");
-        file.renameTo(new java.io.File("./src/main/resources/photo/" + medAfter.getName() + "_" + medAfter.getDosage() + ".jpg"));
+        java.io.File file = new java.io.File(PATH_FOR_PHOTO + medBefore.getName() + "_" + medBefore.getDosage() + FILE_EXTENSION);
+        file.renameTo(new java.io.File(PATH_FOR_PHOTO + medAfter.getName() + "_" + medAfter.getDosage() + FILE_EXTENSION));
     }
 }

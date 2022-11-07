@@ -14,7 +14,6 @@ import com.smelov.service.UpdateService;
 import com.smelov.service.UserStatusService;
 import com.smelov.service.impl.ChatMessagesService;
 import com.smelov.service.impl.PhotoService;
-import com.vdurmont.emoji.EmojiParser;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +29,13 @@ import java.util.*;
 @Slf4j
 @RequiredArgsConstructor
 public class UpdateReceivedHandler {
+
+    public final String DO_NOT_UNDERSTAND_ON_UPDATE_RECEIVED = "Простите, не понял в onUpdateReceived";
+    public final String DO_NOT_UNDERSTAND_CALLBACK_HANDLER = "Простите, не понял в callbackQueryHandler";
+    public final String SET_NUMBER_FOR_DELETE = "Введите порядковый номер лекарства для удаления:";
+    public final String SET_NUMBER_FOR_EDIT = "Введите порядковый номер лекарства для редактирования:";
+    public final String SET_NAME_FOR_ADD = "Введите название лекарства, которое вы хотите добавить:";
+    public final String SET_NUMBER_FOR_DETAIL = "Введите порядковый номер лекарства для показа деталей:";
 
     private final RemedyBot remedyBot;
     private final UpdateService updateService;
@@ -51,7 +57,7 @@ public class UpdateReceivedHandler {
         Long userId = updateService.getUserId(update);
         Long chatId = updateService.getChatId(update);
         sendMessage.setChatId(chatId);
-        sendMessage.setText("Простите, не понял в onUpdateReceived");
+        sendMessage.setText(DO_NOT_UNDERSTAND_ON_UPDATE_RECEIVED);
 
 
         if (update.hasMessage()) {
@@ -156,6 +162,7 @@ public class UpdateReceivedHandler {
                         .comparator(Comparator.comparing(Medicine::getName))
                         .medicine(new Medicine())
                         .build());
+                message.enableHtml(true);
                 message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                 break;
@@ -169,6 +176,7 @@ public class UpdateReceivedHandler {
                         .comparator(Comparator.comparing(Medicine::getName))
                         .medicine(new Medicine())
                         .build());
+                message.enableHtml(true);
                 message.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
 //                message.setText(EmojiParser.parseToUnicode("Простите, не понял.\nНажмите Меню -> Список лекарств\n   :arrow_down:"));
@@ -192,7 +200,7 @@ public class UpdateReceivedHandler {
         switch (update.getCallbackQuery().getData()) {
             case "DEL_BUTTON":
                 log.info("DEL_BUTTON");
-                message.setText("Введите порядковый номер лекарства для удаления:");
+                message.setText(SET_NUMBER_FOR_DELETE);
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.DEL)
@@ -204,7 +212,7 @@ public class UpdateReceivedHandler {
 
             case "EDIT_BUTTON":
                 log.info("EDIT_BUTTON");
-                message.setText("Введите порядковый номер лекарства для редактирования:");
+                message.setText(SET_NUMBER_FOR_EDIT);
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.EDIT)
@@ -216,7 +224,7 @@ public class UpdateReceivedHandler {
 
             case "ADD_BUTTON":
                 log.info("ADD_BUTTON");
-                message.setText("Введите название лекарства, которое вы хотите добавить:");
+                message.setText(SET_NAME_FOR_ADD);
                 message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForCancel());
                 userStatusService.changeCurrentStatus(userId, Status.builder()
                         .mainStatus(MainStatus.ADD)
@@ -230,7 +238,7 @@ public class UpdateReceivedHandler {
 
             case "DETAIL_BUTTON":
                 log.info("DETAIL_BUTTON");
-                message.setText("Введите порядковый номер лекарства для показа деталей:");
+                message.setText(SET_NUMBER_FOR_DETAIL);
                 System.out.println("в case \"DETAIL_BUTTON\"" + userStatusService.getCurrentStatus(userId).getUserMessageIds());
                 userStatusService.changeCurrentStatus(userId,
                         Status.builder()
@@ -243,7 +251,7 @@ public class UpdateReceivedHandler {
                 break;
 
             default:
-                message.setText("Не знаю статуса в callbackQueryHandler");
+                message.setText(DO_NOT_UNDERSTAND_CALLBACK_HANDLER);
                 break;
         }
         log.info("<---- выход из callbackQueryHandler()");
@@ -273,6 +281,7 @@ public class UpdateReceivedHandler {
                         .userMessageIds(new LinkedHashSet<>())
                         .build());
                 sendMessage.setChatId(updateService.getChatId(update));
+                sendMessage.enableHtml(true);
                 sendMessage.setText(textMessageService.nameList(medicineService.getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
                 sendMessage.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForAllMedsList());
                 return sendMessage;
@@ -313,7 +322,7 @@ public class UpdateReceivedHandler {
             default:
                 log.info("case default");
                 sendMessage.setChatId(chatId);
-                sendMessage.setText("Простите, не понял в currentStatusHandler");
+                sendMessage.setText(DO_NOT_UNDERSTAND_CALLBACK_HANDLER);
                 log.info("<---- выход из currentStatusHandler()");
                 log.info("<---- выход из onUpdateReceived()");
                 return sendMessage;
