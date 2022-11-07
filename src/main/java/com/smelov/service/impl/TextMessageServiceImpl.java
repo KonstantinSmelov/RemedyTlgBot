@@ -21,6 +21,7 @@ public class TextMessageServiceImpl implements TextMessageService {
         StringBuilder string = new StringBuilder();
         string.append("<b>Препараты в наличии:</b> \n\n");
         int x = 1;
+        LocalDate now = LocalDate.of(LocalDate.now().getYear(), LocalDate.now().getMonth(), 1);
 
         for (Medicine med : meds) {
             string
@@ -29,16 +30,16 @@ public class TextMessageServiceImpl implements TextMessageService {
                     .append("</b>")
                     .append(" - ");
 
-            if (0 < LocalDate.now().compareTo(med.getExpDate().toLocalDate())) {
+            if (now.compareTo(med.getExpDate().toLocalDate()) > 0) {
                 string
                         .append("<del>")
                         .append(med.getName())
                         .append("</del>");
-            } else if (0 < LocalDate.now().minus(1, ChronoUnit.MONTHS).compareTo(med.getExpDate().toLocalDate())) {
+            } else if (now.plus(1, ChronoUnit.MONTHS).compareTo(med.getExpDate().toLocalDate()) == 0
+                    || now.compareTo(med.getExpDate().toLocalDate()) == 0) {
                 string
-                        .append("<del>")
                         .append(med.getName())
-                        .append("</del>");
+                        .append(String.format("  <i> [годен до: %d-%d)</i]", med.getExpDate().toLocalDate().getYear(), med.getExpDate().toLocalDate().getMonth().getValue()));
             } else {
                 string.append(med.getName());
             }
