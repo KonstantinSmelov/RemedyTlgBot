@@ -28,6 +28,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 
 import java.sql.Date;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -782,10 +784,26 @@ public class MedicineServiceImpl implements MedicineService {
             return message;
         }
 
-        message.setText("Препарат..... " + medicine.getName()
-                + "\nДозировка.. " + medicine.getDosage()
-                + "\nКол-во.......... " + medicine.getQuantity()
-                + "\nГоден до....... " + medicine.getTextExpDate());
+        LocalDate now = LocalDate.of(LocalDate.now().getYear(), LocalDate.now().getMonth(), 1);
+
+        String text = "Препарат..... " +
+                medicine.getName() +
+                "\nДозировка.. " +
+                medicine.getDosage() +
+                "\nКол-во.......... " +
+                medicine.getQuantity() +
+                "\nГоден до....... " +
+                medicine.getTextExpDate();
+
+        if(now.compareTo(medicine.getExpDate().toLocalDate()) > 0) {
+            text = text + " <i>[истёк!!!]</i>";
+        } else if (now.plus(1, ChronoUnit.MONTHS).compareTo(medicine.getExpDate().toLocalDate()) == 0
+                || now.compareTo(medicine.getExpDate().toLocalDate()) == 0) {
+            text = text + "  <i>[истекает!]</i>";
+        }
+
+        message.enableHtml(true);
+        message.setText(text);
         message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForDetailView());
 
         userStatusService.changeCurrentStatus(userId, Status.builder()
