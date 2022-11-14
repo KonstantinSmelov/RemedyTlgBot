@@ -268,7 +268,6 @@ public class MedicineServiceImpl implements MedicineService {
 
                 if (medicine != null) {
                     chatMessagesService.deleteMessagesFromChat(chatId, userId);
-                    System.out.println(medicine.getName() + " / " + medicine.getExpDate());
                     status.setMedicine(medicine);
                     message.setText("Препарат..... " + medicine.getName()
                             + "\nДозировка.. " + medicine.getDosage()

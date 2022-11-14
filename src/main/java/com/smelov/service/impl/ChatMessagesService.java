@@ -27,7 +27,6 @@ public class ChatMessagesService {
     private final RemedyBot remedyBot;
     private final UserStatusService userStatusService;
 
-    @SneakyThrows
     public void deleteMessagesFromChat(Long chatId, Long userId) {
         log.debug("----> вход в deleteMessagesFromChat()");
         DeleteMessage deleteMessage = new DeleteMessage();
@@ -35,27 +34,29 @@ public class ChatMessagesService {
         for (Integer messageId : userStatusService.getCurrentStatus(userId).getUserMessageIds()) {
             deleteMessage.setMessageId(messageId);
             deleteMessage.setChatId(chatId);
-            remedyBot.execute(deleteMessage);
+            executeOrRemove(deleteMessage, userId, messageId);
         }
         this.userStatusService.getCurrentStatus(userId).getUserMessageIds().clear();
         log.debug("<---- выход из deleteMessagesFromChat()");
     }
 
-    @SneakyThrows
+    //    @SneakyThrows
     public void deleteLastMessagesFromChat(Long chatId, Long userId, Integer qtyOfLastMessages) {
         log.debug("----> вход в deleteLastMessagesFromChat()");
         DeleteMessage deleteMessage = new DeleteMessage();
+        Integer messageId;
 
-        Set<Integer> messagesSet = userStatusService.getCurrentStatus(userId).getUserMessageIds();
-        Integer[] messagesArray = messagesSet.toArray(Integer[]::new);
-        System.out.println(Arrays.toString(messagesArray));
+        Set<Integer> messageIdSet = userStatusService.getCurrentStatus(userId).getUserMessageIds();
+        Integer[] messageIdArray = messageIdSet.toArray(Integer[]::new);
+        System.out.println(Arrays.toString(messageIdArray));
 
         for (int x = 0; x < qtyOfLastMessages; x++) {
-            deleteMessage.setMessageId(messagesArray[messagesArray.length - 1 - x]);
-            System.out.println("Удаляем: " + messagesArray[messagesArray.length - 1 + x]);
+            messageId = messageIdArray[messageIdArray.length - 1 + x];
+            deleteMessage.setMessageId(messageIdArray[messageIdArray.length - 1 - x]);
+            System.out.println("Удаляем: " + messageIdArray[messageIdArray.length - 1 + x]);
             deleteMessage.setChatId(chatId);
-            userStatusService.getCurrentStatus(userId).getUserMessageIds().remove(messagesArray[messagesArray.length - 1 + x]);
-            remedyBot.execute(deleteMessage);
+            executeOrRemove(deleteMessage, userId, messageId);
+            userStatusService.getCurrentStatus(userId).getUserMessageIds().remove(messageId);
         }
         log.debug("<---- выход из deleteLastMessagesFromChat()");
     }
@@ -84,6 +85,15 @@ public class ChatMessagesService {
             addNewIdToMessageIds(userId, forDelete.getMessageId());
         } catch (TelegramApiException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void executeOrRemove(DeleteMessage deleteMessage, Long userId, Integer messageId) {
+        try {
+            remedyBot.execute(deleteMessage);
+        } catch (TelegramApiException e) {
+            System.out.println("кэч сработал");
+            userStatusService.getCurrentStatus(userId).getUserMessageIds().remove(messageId);
         }
     }
 }
