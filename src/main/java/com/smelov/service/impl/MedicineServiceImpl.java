@@ -397,7 +397,7 @@ public class MedicineServiceImpl implements MedicineService {
     }
 
     @Override
-    public BotApiMethod<?> getMedDetails(Update update) {
+    public SendMessage getMedDetails(Update update) {
         log.info("----> вход в getMedDetails()");
         SendMessage message = new SendMessage();
         Long userId = updateService.getUserId(update);

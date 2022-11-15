@@ -1,7 +1,6 @@
 package com.smelov.handler;
 
 import com.smelov.StaticClass;
-import com.smelov.bot.CustomReplyKeyboardMarkup;
 import com.smelov.bot.RemedyBot;
 import com.smelov.entity.Medicine;
 import com.smelov.keyboard.CustomInlineKeyboardMarkup;
@@ -46,7 +45,6 @@ public class UpdateReceivedHandler {
     private final CustomInlineKeyboardMarkup customInlineKeyboardMarkup;
     private final PhotoService photoService;
     private final ChatMessagesService chatMessagesService;
-    private final CustomReplyKeyboardMarkup customReplyKeyboardMarkup;
 
     @SneakyThrows
     public void onUpdateReceived(Update update) {
@@ -103,7 +101,20 @@ public class UpdateReceivedHandler {
             log.info("<===== выход из onUpdateReceived()\n");
             return;
 
-        } else if (userStatusService.getCurrentStatus(userId).getMainStatus() != MainStatus.MAIN_MENU) {
+        } else if (userStatusService.getCurrentStatus(userId).getMainStatus().equals(MainStatus.MAIN_MENU)
+                &&
+                !update.hasCallbackQuery()
+                &&
+                update.hasMessage()) {
+            chatMessagesService.deleteMessagesFromChat(chatId, userId);
+            SendMessage sendMessage1 = medicineService.getMedDetails(update);
+            Message forDelete = remedyBot.execute(sendMessage1);
+            chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
+            Medicine medicine = userStatusService.getCurrentStatus(updateService.getUserId(update)).getMedicine();
+            photoService.showPhotoIfExist(update, medicine);
+        }
+
+        else if (userStatusService.getCurrentStatus(userId).getMainStatus() != MainStatus.MAIN_MENU) {
 
             while (StaticClass.proceed) {
                 StaticClass.proceed = false;

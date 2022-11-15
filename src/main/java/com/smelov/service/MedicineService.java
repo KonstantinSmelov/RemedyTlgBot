@@ -14,6 +14,6 @@ public interface MedicineService {
     SendMessage addMedicine(Update update);
     SendMessage deleteMedByNumber(Update update);
     SendMessage editMedByNumber(Update update);
-    BotApiMethod<?> getMedDetails(Update update);
+    SendMessage getMedDetails(Update update);
     SendPhoto getMedicinePhoto(Medicine medicine);
 }
