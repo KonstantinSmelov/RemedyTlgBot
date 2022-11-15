@@ -87,7 +87,6 @@ public class CustomInlineKeyboardMarkup {
         rowList = new ArrayList<>();
         List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
         List<InlineKeyboardButton> buttonsRow2 = new ArrayList<>();
-        List<InlineKeyboardButton> buttonsRow3 = new ArrayList<>();
         InlineKeyboardButton edit_Button = new InlineKeyboardButton();
         InlineKeyboardButton del_Button = new InlineKeyboardButton();
         InlineKeyboardButton add_Button = new InlineKeyboardButton();

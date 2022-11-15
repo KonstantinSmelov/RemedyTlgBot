@@ -1,6 +1,7 @@
 package com.smelov.handler;
 
 import com.smelov.StaticClass;
+import com.smelov.bot.CustomReplyKeyboardMarkup;
 import com.smelov.bot.RemedyBot;
 import com.smelov.entity.Medicine;
 import com.smelov.keyboard.CustomInlineKeyboardMarkup;
@@ -45,6 +46,7 @@ public class UpdateReceivedHandler {
     private final CustomInlineKeyboardMarkup customInlineKeyboardMarkup;
     private final PhotoService photoService;
     private final ChatMessagesService chatMessagesService;
+    private final CustomReplyKeyboardMarkup customReplyKeyboardMarkup;
 
     @SneakyThrows
     public void onUpdateReceived(Update update) {
@@ -78,8 +80,9 @@ public class UpdateReceivedHandler {
             chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
             log.info("<===== выход из onUpdateReceived() =====>\n");
             return;
+        }
 
-        } else if (userStatusService.getCurrentStatus(userId).getMainStatus().equals(MainStatus.MAIN_MENU)
+        if (userStatusService.getCurrentStatus(userId).getMainStatus().equals(MainStatus.MAIN_MENU)
                 &&
                 !update.hasCallbackQuery()
                 &&
@@ -110,6 +113,7 @@ public class UpdateReceivedHandler {
                 log.info("<===== выход из onUpdateReceived()\n");
             }
             return;
+
         } else if (update.hasCallbackQuery()) {
             BotApiMethod<?> someBotApiMethod = callbackQueryHandler(update);
             Message forDelete = (Message) remedyBot.execute(someBotApiMethod);
@@ -239,7 +243,6 @@ public class UpdateReceivedHandler {
             case "DETAIL_BUTTON":
                 log.info("DETAIL_BUTTON");
                 message.setText(SET_NUMBER_FOR_DETAIL);
-                System.out.println("в case \"DETAIL_BUTTON\"" + userStatusService.getCurrentStatus(userId).getUserMessageIds());
                 userStatusService.changeCurrentStatus(userId,
                         Status.builder()
                                 .mainStatus(MainStatus.DETAIL)
@@ -247,7 +250,6 @@ public class UpdateReceivedHandler {
                                 .editStatus(EditStatus.NONE)
                                 .comparator(status.getComparator())
                                 .build());
-                System.out.println("в case \"DETAIL_BUTTON\"" + userStatusService.getCurrentStatus(userId).getUserMessageIds());
                 break;
 
             default:
