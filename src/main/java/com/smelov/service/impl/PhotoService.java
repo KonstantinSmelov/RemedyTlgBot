@@ -22,7 +22,6 @@ public class PhotoService {
     private final UpdateService updateService;
     private final RemedyBot remedyBot;
     private final ChatMessagesService chatMessagesService;
-    private final UserStatusService userStatusService;
 
     @SneakyThrows
     public void showPhotoIfExist(Update update, Medicine medicine) {
@@ -31,7 +30,6 @@ public class PhotoService {
             SendPhoto photo = medicineService.getMedicinePhoto(medicine);
             photo.setChatId(updateService.getChatId(update));
             Message forDelete = remedyBot.execute(photo);
-            System.out.println(userStatusService.getCurrentStatus(updateService.getUserId(update)).getUserMessageIds());
             chatMessagesService.addNewIdToMessageIds(updateService.getUserId(update), forDelete.getMessageId());
             log.info("<---- showPhotoIfExist(): фото найдено");
         } else {

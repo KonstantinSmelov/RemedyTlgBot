@@ -76,7 +76,7 @@ public class UpdateReceivedHandler {
             sendMessage = messageTextHandler(update);
             Message forDelete = remedyBot.execute(sendMessage);
             chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
-            log.info("<===== выход из onUpdateReceived() =====>\n");
+            log.info("<===== выход из onUpdateReceived()\n");
             return;
         }
 
@@ -101,17 +101,21 @@ public class UpdateReceivedHandler {
             log.info("<===== выход из onUpdateReceived()\n");
             return;
 
-        } else if (userStatusService.getCurrentStatus(userId).getMainStatus().equals(MainStatus.MAIN_MENU)
+        }
+        else if (userStatusService.getCurrentStatus(userId).getMainStatus().equals(MainStatus.MAIN_MENU)
                 &&
                 !update.hasCallbackQuery()
                 &&
                 update.hasMessage()) {
             chatMessagesService.deleteMessagesFromChat(chatId, userId);
-            SendMessage sendMessage1 = medicineService.getMedDetails(update);
-            Message forDelete = remedyBot.execute(sendMessage1);
-            chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
             Medicine medicine = userStatusService.getCurrentStatus(updateService.getUserId(update)).getMedicine();
             photoService.showPhotoIfExist(update, medicine);
+            SendMessage sendMessage1 = medicineService.getMedDetails(update);
+//TODO: тут проблема с заменой статуса на DETAIL в getMedDetails, хотя тут должно оставаться MAIN_MENU
+            Message forDelete = remedyBot.execute(sendMessage1);
+            chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
+            log.info("<===== выход из onUpdateReceived()\n");
+            return;
         }
 
         else if (userStatusService.getCurrentStatus(userId).getMainStatus() != MainStatus.MAIN_MENU) {
