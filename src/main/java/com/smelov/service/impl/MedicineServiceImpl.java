@@ -123,7 +123,7 @@ public class MedicineServiceImpl implements MedicineService {
                             .medicine(medicine)
                             .build());
                     message.setReplyMarkup(customInlineKeyboardMarkup.inlineKeyboardForReturn());
-                    log.info("<---- выход из editMedByNumber() ---->");
+                    log.info("<---- выход из editMedByNumber()");
                     return message;
 
                 case "EDIT_DOSAGE_BUTTON":
@@ -410,6 +410,7 @@ public class MedicineServiceImpl implements MedicineService {
 
                 case "DEL_FROM_DETAIL_BUTTON":
                     log.info("case DEL_FROM_DETAIL_BUTTON");
+                    log.info("<---- выход из getMedDetails()");
                     return deleteMedByNumber(update);
 
                 case "EDIT_FROM_DETAIL_BUTTON":
@@ -426,6 +427,7 @@ public class MedicineServiceImpl implements MedicineService {
                             .medicine(status.getMedicine())
                             .comparator(status.getComparator())
                             .build());
+                    log.info("<---- выход из getMedDetails()");
                     return message;
 
                 case "MAIN_MENU_BUTTON":
@@ -438,10 +440,12 @@ public class MedicineServiceImpl implements MedicineService {
                             .build());
                     message.setText(RETURN_TO_MAIN_MENU);
                     StaticClass.proceed = true;
+                    log.info("<---- выход из getMedDetails()");
                     return message;
             }
         }
 
+        log.info("<---- выход из getMedDetails()");
         return getDetailsByNumber(update);
     }
 
@@ -780,6 +784,7 @@ public class MedicineServiceImpl implements MedicineService {
         if (medicine == null) {
             chatMessagesService.showMedsNameList(chatId, userId, textMessageService.nameList(getAllMeds(userStatusService.getCurrentStatus(userId).getComparator())));
             message.setText(String.format(NOT_EXIST_INTO_DB_FOR_DETAIL, textFromChat));
+            log.info("<---- выход из getDetailsByNumber()");
             return message;
         }
 

@@ -25,15 +25,15 @@ public class PhotoService {
 
     @SneakyThrows
     public void showPhotoIfExist(Update update, Medicine medicine) {
-        log.info("----> showPhotoIfExist(): {}", medicine);
+        log.info("----> вход в showPhotoIfExist(): {}", medicine);
         if (medicine != null && medicineService.getMedicinePhoto(medicine) != null) {
             SendPhoto photo = medicineService.getMedicinePhoto(medicine);
             photo.setChatId(updateService.getChatId(update));
             Message forDelete = remedyBot.execute(photo);
             chatMessagesService.addNewIdToMessageIds(updateService.getUserId(update), forDelete.getMessageId());
-            log.info("<---- showPhotoIfExist(): фото найдено");
+            log.info("<---- выход из showPhotoIfExist(): фото найдено");
         } else {
-            log.info("<---- showPhotoIfExist(): фото НЕ найдено");
+            log.info("<---- выход из showPhotoIfExist(): фото НЕ найдено");
         }
     }
 }
