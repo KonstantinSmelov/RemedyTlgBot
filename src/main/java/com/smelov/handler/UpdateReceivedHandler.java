@@ -72,11 +72,11 @@ public class UpdateReceivedHandler {
         }
 
         //Обработка текстовых команд верхнего уровня (гл. меню)
-        if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().matches("^/.*")) {
+        if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getText().matches("^\\/*")) {
             sendMessage = messageTextHandler(update);
             Message forDelete = remedyBot.execute(sendMessage);
             chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
-            log.info("<===== выход из onUpdateReceived()\n");
+            log.info("<---- выход из onUpdateReceived()\n");
             return;
         }
 
@@ -102,25 +102,23 @@ public class UpdateReceivedHandler {
             return;
 
         }
-        else if (userStatusService.getCurrentStatus(userId).getMainStatus().equals(MainStatus.MAIN_MENU)
-                &&
-                !update.hasCallbackQuery()
-                &&
-                update.hasMessage()) {
-            chatMessagesService.deleteMessagesFromChat(chatId, userId);
-            Medicine medicine = userStatusService.getCurrentStatus(updateService.getUserId(update)).getMedicine();
-            photoService.showPhotoIfExist(update, medicine);
-            SendMessage sendMessage1 = medicineService.getMedDetails(update);
-//TODO: тут проблема с заменой статуса на DETAIL в getMedDetails, хотя тут должно оставаться MAIN_MENU
-            Message forDelete = remedyBot.execute(sendMessage1);
-            chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
-            log.info("<===== выход из onUpdateReceived()\n");
-            return;
-        }
-
+//        else if (userStatusService.getCurrentStatus(userId).getMainStatus().equals(MainStatus.MAIN_MENU)
+//                &&
+//                !update.hasCallbackQuery()
+//                &&
+//                update.hasMessage()) {
+//            chatMessagesService.deleteMessagesFromChat(chatId, userId);
+//            Medicine medicine = userStatusService.getCurrentStatus(userId).getMedicine();
+//            System.out.println(medicine.getName());
+//            photoService.showPhotoIfExist(update, medicine);
+//            SendMessage sendMessage1 = medicineService.getMedDetails(update);
+//            Message forDelete = remedyBot.execute(sendMessage1);
+//            chatMessagesService.addNewIdToMessageIds(userId, forDelete.getMessageId());
+//            log.info("<===== выход из onUpdateReceived()\n");
+//            return;
+//        }
         else if (userStatusService.getCurrentStatus(userId).getMainStatus() != MainStatus.MAIN_MENU) {
-
-            while (StaticClass.proceed) {
+            while (StaticClass.proceed && userStatusService.getCurrentStatus(userId).getMainStatus() != MainStatus.MAIN_MENU) {
                 StaticClass.proceed = false;
                 BotApiMethod<?> sendMessage1 = currentStatusHandler(update);
                 Message forDelete = (Message) remedyBot.execute(sendMessage1);
@@ -152,6 +150,7 @@ public class UpdateReceivedHandler {
         SendMessage message = new SendMessage();
 
         message.setChatId(update.getMessage().getChatId());
+
         switch (update.getMessage().getText()) {
             case "/by_name":
                 log.info("case /by_name");
@@ -308,7 +307,7 @@ public class UpdateReceivedHandler {
                 chatMessagesService.deleteMessagesFromChat(chatId, userId);
                 sendMessage = medicineService.deleteMedByNumber(update);
                 log.info("<---- выход из currentStatusHandler()");
-                log.info("<---- выход из onUpdateReceived()");
+//                log.info("<===== выход из onUpdateReceived()");
                 return sendMessage;
 
             case EDIT:
@@ -316,14 +315,14 @@ public class UpdateReceivedHandler {
                 chatMessagesService.deleteMessagesFromChat(chatId, userId);
                 sendMessage = medicineService.editMedByNumber(update);
                 log.info("<---- выход из currentStatusHandler()");
-                log.info("<---- выход из onUpdateReceived()");
+//                log.info("<===== выход из onUpdateReceived()");
                 return sendMessage;
 
             case ADD:
                 log.info("case ADD");
                 sendMessage = medicineService.addMedicine(update);
                 log.info("<---- выход из currentStatusHandler()");
-                log.info("<---- выход из onUpdateReceived()");
+//                log.info("<===== выход из onUpdateReceived()");
                 return sendMessage;
 
             case DETAIL:
@@ -333,7 +332,7 @@ public class UpdateReceivedHandler {
                 Medicine medicine = userStatusService.getCurrentStatus(updateService.getUserId(update)).getMedicine();
                 photoService.showPhotoIfExist(update, medicine);
                 log.info("<---- выход из currentStatusHandler()");
-                log.info("<---- выход из onUpdateReceived(");
+//                log.info("<===== выход из onUpdateReceived()");
                 return sendMessage1;
 
             default:
@@ -341,7 +340,7 @@ public class UpdateReceivedHandler {
                 sendMessage.setChatId(chatId);
                 sendMessage.setText(DO_NOT_UNDERSTAND_CALLBACK_HANDLER);
                 log.info("<---- выход из currentStatusHandler()");
-                log.info("<---- выход из onUpdateReceived()");
+//                log.info("<===== выход из onUpdateReceived()");
                 return sendMessage;
         }
     }

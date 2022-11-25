@@ -221,20 +221,4 @@ public class CustomInlineKeyboardMarkup {
 
         return inlineKeyboardMarkup;
     }
-
-    public InlineKeyboardMarkup inlineKeyboardForOk() {
-        inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        rowList = new ArrayList<>();
-        List<InlineKeyboardButton> buttonsRow1 = new ArrayList<>();
-        InlineKeyboardButton ok_Button = new InlineKeyboardButton();
-
-        ok_Button.setText("ПОНЯЛ");
-        ok_Button.setCallbackData("OK_BUTTON");
-
-        buttonsRow1.add(ok_Button);
-        rowList.add(buttonsRow1);
-        inlineKeyboardMarkup.setKeyboard(rowList);
-
-        return inlineKeyboardMarkup;
-    }
 }
