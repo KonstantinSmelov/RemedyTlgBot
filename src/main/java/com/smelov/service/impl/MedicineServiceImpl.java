@@ -757,8 +757,8 @@ public class MedicineServiceImpl implements MedicineService {
                     medicineRepository.save(newMed);
                     log.info("В базу сохранено лекарство: {}", newMed);
                 } else {
+                    message.setText(String.format(ALREADY_EXIST_IN_DB, newMed.getName(), newMed.getDosage(), newMed.getExpDate().toString()));
                 }
-                message.setText(String.format(ALREADY_EXIST_IN_DB, newMed.getName(), newMed.getDosage(), newMed.getExpDate().toString()));
                 break;
         }
         log.info("<---- выход из addMedicine()");
@@ -799,7 +799,7 @@ public class MedicineServiceImpl implements MedicineService {
                 "\nГоден до....... " +
                 medicine.getTextExpDate();
 
-        if(now.compareTo(medicine.getExpDate().toLocalDate()) > 0) {
+        if (now.compareTo(medicine.getExpDate().toLocalDate()) > 0) {
             text = text + " <i>[истёк!!!]</i>";
         } else if (now.plus(1, ChronoUnit.MONTHS).compareTo(medicine.getExpDate().toLocalDate()) == 0
                 || now.compareTo(medicine.getExpDate().toLocalDate()) == 0) {
@@ -886,7 +886,7 @@ public class MedicineServiceImpl implements MedicineService {
         GetFile getFile = new GetFile();
         getFile.setFileId(update.getMessage().getPhoto().get(3).getFileId());
         File file = remedyBot.execute(getFile);
-        remedyBot.downloadFile(file, new java.io.File( PATH_FOR_PHOTO+ medicine.getName() + "_" + medicine.getDosage() + FILE_EXTENSION));
+        remedyBot.downloadFile(file, new java.io.File(PATH_FOR_PHOTO + medicine.getName() + "_" + medicine.getDosage() + FILE_EXTENSION));
     }
 
     private void deleteMedicinePhoto(Medicine medicine) {
